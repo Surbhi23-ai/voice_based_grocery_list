@@ -302,7 +302,14 @@
       border-radius: 6px;
     }
 
-    #logoutBtn {
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    #logoutBtn, #langToggleBtn {
       padding: 8px 14px;
       background: rgba(255, 255, 255, 0.15);
       border: 1.5px solid rgba(255, 255, 255, 0.4);
@@ -314,10 +321,9 @@
       font-family: inherit;
       white-space: nowrap;
       transition: background 0.2s;
-      flex-shrink: 0;
     }
 
-    #logoutBtn:hover {
+    #logoutBtn:hover, #langToggleBtn:hover {
       background: rgba(255, 255, 255, 0.25);
     }
 
@@ -928,7 +934,10 @@
           <div class="header-title"><img src="/public/assets/logo.png" alt="" /> किराना लिस्ट</div>
         </div>
       </div>
-      <button id="logoutBtn" onclick="logout()">🚪 बाहर</button>
+      <div class="header-right">
+        <button id="langToggleBtn" onclick="toggleLang()">🌐 EN</button>
+        <button id="logoutBtn" onclick="logout()">🚪 बाहर</button>
+      </div>
     </header>
 
     <main>
@@ -1024,8 +1033,7 @@
 
     const KNOWN_BRANDS = ['अमूल', 'पतंजलि', 'नेस्ले', 'हल्दीराम', 'बिसलेरी', 'टाटा', 'आशीर्वाद', 'अन्नपूर्णा', 'मदर डेयरी', 'ब्रिटानिया', 'परले', 'लिज्जत', 'सफोला', 'फॉर्च्यून', 'डाबर', 'मैगी', 'कोलगेट', 'सर्फ', 'रिन', 'टाइड', 'विम', 'बाबा', 'रियो', 'पारले', 'सनफीस्ट'];
 
-    const STOP_WORDS = ['बस', 'अभी नहीं', 'नहीं', 'रुको', 'बंद करो', 'नही', 'काफी है', 'ठीक है बस'];
-    const YES_WORDS = ['हाँ', 'हां', 'हा', 'जी हाँ', 'जी हां', 'बिल्कुल', 'ज़रूर', 'जरूर', 'हाँ जी'];
+    // Stop/Yes words are now language-dependent — see T[lang].stop_words / yes_words
     const HINDI_MONTHS = ['जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'];
 
     /* ══════════════════════════════════════════════════════
@@ -1068,11 +1076,204 @@
     /* ══════════════════════════════════════════════════════
        LOCALSTORAGE (single source of truth — no backend needed)
     ══════════════════════════════════════════════════════ */
-    const LS_LISTS = 'kiraana_lists_v1';
     const LS_USER = 'kiraana_user_v3';
+    // Key is scoped per user so two Google accounts on the same device never share data
+    function lsKey() { return 'kiraana_lists_v1_' + (currentUser?.sub || 'guest'); }
 
-    function lsLoad() { try { return JSON.parse(localStorage.getItem(LS_LISTS)) || { lists: {} }; } catch { return { lists: {} }; } }
-    function lsSave(d) { localStorage.setItem(LS_LISTS, JSON.stringify(d)); }
+    /* ══════════════════════════════════════════════════════
+       LANGUAGE / i18n
+    ══════════════════════════════════════════════════════ */
+    let lang = localStorage.getItem('kiraana_lang') || 'hi';
+
+    const T = {
+      hi: {
+        lang_code: 'hi-IN',
+        // TTS
+        list_create_fail: 'माफ़ करें, लिस्ट नहीं बन सकी।',
+        confirm_copy:        (n, p) => `ठीक है, "${n}" बना दी। आपने पहले "${p}" बनाई थी। क्या मैं वही सामान इस लिस्ट में जोड़ दूँ?`,
+        list_created:        (n)    => `ठीक है, "${n}" सूची बना दी। अब बताइए इसमें क्या सामान जोड़ना है।`,
+        list_not_found:      (k)    => `माफ़ करें, "${k}" वाली लिस्ट नहीं मिली।`,
+        list_opened:         (n)    => `ठीक है, "${n}" खोल दी।`,
+        select_list_first:   'पहले एक लिस्ट चुनें।',
+        no_prev_list:        'कोई पिछली लिस्ट नहीं मिली।',
+        items_copied:        'ठीक है, पिछली लिस्ट का सामान जोड़ दिया।',
+        copy_done:           'ठीक है, मैंने पिछली लिस्ट से सामान जोड़ दिया है। और कुछ जोड़ना है?',
+        new_list_start:      'ठीक है, नई खाली लिस्ट शुरू करते हैं। बोलकर सामान जोड़ें।',
+        say_yes_no:          'हाँ या नहीं बोलें।',
+        ask_more:            'और कुछ? आप और कुछ ऐड करना चाहते हैं क्या?',
+        say_yes_no2:         'माफ़ करें, हाँ या नहीं बोलें।',
+        list_empty_warn:     'आपकी लिस्ट खाली है। क्या आप कोई चीज़ ऐड करना चाहते हैं?',
+        list_saved:          'ठीक है, लिस्ट सेव हो गई।',
+        no_list_selected:    'पहले एक लिस्ट बनाएं। माइक बटन दबाकर सूची का नाम बोलें।',
+        not_grocery:         'मैं केवल किराना सूची से संबंधित प्रश्न समझ सकती हूँ। कृपया कोई वस्तु जोड़ें या सूची देखें।',
+        item_added_tts:      'ठीक है, लिस्ट में जोड़ दिया।',
+        new_list_instr:      'अब नीचे छोटे माइक का बटन दबाएं और सूची का नाम बोलें, फिर लिस्ट बनाएं पर क्लिक करें।',
+        welcome_with_list:   (g, n) => `${g} आपकी "${n}" सूची तैयार है। माइक बटन दबाकर सामान जोड़ें।`,
+        welcome_no_list:     (g)    => `${g} शुरू करने के लिए ऊपर प्लस बटन दबाएं।`,
+        greeting_prefix:     'नमस्ते',
+        // Status
+        listening:           '🔴 सुन रही हूँ…',
+        tap_to_speak:        'बटन दबाएँ और बोलें',
+        speak_now:           'बोलें…',
+        processing:          'समझ रही हूँ…',
+        list_empty_status:   'लिस्ट खाली है ⚠️',
+        list_saved_status:   'लिस्ट सेव हो गई ✅',
+        item_added_status:   (i)    => `"${i}" जोड़ा गया ✅`,
+        countdown:           (s)    => `${s} सेकंड…`,
+        // Toasts
+        name_required:       '⚠️ नाम लिखें',
+        list_deleted:        '🗑️ लिस्ट हटाई गई',
+        item_deleted:        '🗑️ हटाया गया',
+        list_already_empty:  'लिस्ट पहले से खाली है',
+        list_cleared:        '🗑️ लिस्ट साफ हो गई',
+        mic_denied:          '⚠️ माइक की अनुमति दें',
+        voice_unsupported:   '⚠️ आवाज़ सपोर्ट नहीं',
+        name_recorded:       (tx)   => `🎙️ "${tx}" — "लिस्ट बनाएं" दबाएं`,
+        // DOM labels
+        unsupported_banner:  '⚠️ कृपया Chrome (Android) में खोलें।',
+        guest_badge:         '👤 अतिथि मोड — डेटा सिर्फ इस डिवाइस पर सेव है',
+        login_link:          'लॉगिन करें →',
+        section_label:       '📂 लिस्ट चुनें',
+        new_list_label:      '✏️ नाम लिखें या बोलें',
+        input_placeholder:   'जैसे: मार्च का सामान',
+        create_list_btn:     '✅ लिस्ट बनाएं',
+        instruction:         '🎙️ बोलकर सामान जोड़ें',
+        list_title_default:  '📋 सामान',
+        clear_btn:           '🗑️ साफ करें',
+        delete_list_btn:     '❌ लिस्ट हटाएं',
+        logout_btn:          '🚪 बाहर',
+        transcript_ph:       'आपकी आवाज़ यहाँ दिखेगी…',
+        empty_state:         'अभी लिस्ट खाली है।<br/>🎤 बोलें: "चावल दो किलो"',
+        no_lists_option:     '— कोई लिस्ट नहीं —',
+        stat_total:          'कुल',
+        stat_done:           'हो गया',
+        stat_remaining:      'बाकी',
+        progress_label:      (d, t, p) => `${d}/${t} पूरा (${p}%)`,
+        th_item:             'सामान',
+        th_qty:              'मात्रा',
+        th_brand:            'ब्रांड',
+        th_date:             'तारीख',
+        confirm_clear:       'सारा सामान हटाएं?',
+        confirm_delete:      (n)    => `"${n}" हटाएं?`,
+        loading_text:        'लोड हो रहा है…',
+        lang_btn:            '🌐 EN',
+        // Voice command words
+        stop_words:  ['बस', 'अभी नहीं', 'नहीं', 'रुको', 'बंद करो', 'नही', 'काफी है', 'ठीक है बस'],
+        yes_words:   ['हाँ', 'हां', 'हा', 'जी हाँ', 'जी हां', 'बिल्कुल', 'ज़रूर', 'जरूर', 'हाँ जी'],
+        hush_words:  ['चुप', 'चुप करो', 'चुप हो जाओ', 'शांत', 'रुक जाओ'],
+      },
+      en: {
+        lang_code: 'en-IN',
+        // TTS
+        list_create_fail: 'Sorry, could not create the list.',
+        confirm_copy:        (n, p) => `Okay, "${n}" created. You had "${p}" before. Should I copy those items to this list?`,
+        list_created:        (n)    => `Okay, "${n}" list created. Now tell me what items to add.`,
+        list_not_found:      (k)    => `Sorry, no list found with "${k}".`,
+        list_opened:         (n)    => `Okay, opened "${n}".`,
+        select_list_first:   'Please select a list first.',
+        no_prev_list:        'No previous list found.',
+        items_copied:        'Okay, items from the previous list have been added.',
+        copy_done:           'Okay, I have added items from the previous list. Would you like to add more?',
+        new_list_start:      'Okay, starting fresh with the new list. Say an item to add.',
+        say_yes_no:          'Please say yes or no.',
+        ask_more:            'Anything else? Would you like to add more items?',
+        say_yes_no2:         'Sorry, please say yes or no.',
+        list_empty_warn:     'Your list is empty. Would you like to add something?',
+        list_saved:          'Okay, list saved.',
+        no_list_selected:    'Please create a list first. Press the mic button and say the list name.',
+        not_grocery:         'I can only understand grocery-related questions. Please add an item or view your list.',
+        item_added_tts:      'Okay, added to the list.',
+        new_list_instr:      'Now tap the small mic button below, say your list name, then click Create List.',
+        welcome_with_list:   (g, n) => `${g} Your "${n}" list is ready. Press the mic button to add items.`,
+        welcome_no_list:     (g)    => `${g} Tap the plus button at the top to get started.`,
+        greeting_prefix:     'Hello',
+        // Status
+        listening:           '🔴 Listening…',
+        tap_to_speak:        'Press button and speak',
+        speak_now:           'Speak…',
+        processing:          'Processing…',
+        list_empty_status:   'List is empty ⚠️',
+        list_saved_status:   'List saved ✅',
+        item_added_status:   (i)    => `"${i}" added ✅`,
+        countdown:           (s)    => `${s} sec…`,
+        // Toasts
+        name_required:       '⚠️ Enter a name',
+        list_deleted:        '🗑️ List deleted',
+        item_deleted:        '🗑️ Deleted',
+        list_already_empty:  'List is already empty',
+        list_cleared:        '🗑️ List cleared',
+        mic_denied:          '⚠️ Allow microphone access',
+        voice_unsupported:   '⚠️ Voice not supported',
+        name_recorded:       (tx)   => `🎙️ "${tx}" — press "Create List"`,
+        // DOM labels
+        unsupported_banner:  '⚠️ Please open in Chrome (Android).',
+        guest_badge:         '👤 Guest mode — data saved on this device only',
+        login_link:          'Login →',
+        section_label:       '📂 Choose List',
+        new_list_label:      '✏️ Type or say a name',
+        input_placeholder:   'e.g.: March groceries',
+        create_list_btn:     '✅ Create List',
+        instruction:         '🎙️ Say items to add',
+        list_title_default:  '📋 Items',
+        clear_btn:           '🗑️ Clear',
+        delete_list_btn:     '❌ Delete List',
+        logout_btn:          '🚪 Logout',
+        transcript_ph:       'Your voice will appear here…',
+        empty_state:         'List is empty.<br/>🎤 Say: "Rice 2 kg"',
+        no_lists_option:     '— No lists —',
+        stat_total:          'Total',
+        stat_done:           'Done',
+        stat_remaining:      'Left',
+        progress_label:      (d, t, p) => `${d}/${t} done (${p}%)`,
+        th_item:             'Item',
+        th_qty:              'Qty',
+        th_brand:            'Brand',
+        th_date:             'Date',
+        confirm_clear:       'Remove all items?',
+        confirm_delete:      (n)    => `Delete "${n}"?`,
+        loading_text:        'Loading…',
+        lang_btn:            '🌐 हिं',
+        // Voice command words
+        stop_words:  ['stop', 'done', 'no', 'exit', 'quit', 'enough', 'finish', "that's all", 'thats all'],
+        yes_words:   ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'of course', 'go ahead'],
+        hush_words:  ['quiet', 'stop talking', 'silence', 'shut up', 'mute'],
+      }
+    };
+
+    function t(key, ...args) {
+      const val = T[lang][key];
+      return typeof val === 'function' ? val(...args) : (val ?? key);
+    }
+
+    function toggleLang() {
+      lang = lang === 'hi' ? 'en' : 'hi';
+      localStorage.setItem('kiraana_lang', lang);
+      document.getElementById('langToggleBtn').textContent = t('lang_btn');
+      applyLang();
+      window.speechSynthesis && window.speechSynthesis.cancel();
+    }
+
+    function applyLang() {
+      document.getElementById('unsupportedBanner').textContent = t('unsupported_banner');
+      document.querySelector('.guest-badge').innerHTML =
+        `${t('guest_badge')} <button onclick="showLoginScreen()">${t('login_link')}</button>`;
+      document.querySelector('.section-label').textContent = t('section_label');
+      document.querySelector('.new-list-label').textContent = t('new_list_label');
+      document.getElementById('newListInput').placeholder = t('input_placeholder');
+      document.getElementById('createListConfirm').textContent = t('create_list_btn');
+      document.querySelector('.instruction').textContent = t('instruction');
+      document.getElementById('logoutBtn').textContent = t('logout_btn');
+      document.getElementById('clearBtn').textContent = t('clear_btn');
+      document.getElementById('deleteListBtn').textContent = t('delete_list_btn');
+      document.querySelector('.loading-text').textContent = t('loading_text');
+      const tr = document.getElementById('transcript');
+      if (tr.classList.contains('empty')) tr.textContent = t('transcript_ph');
+      if (!isListening && !awaitingMore) document.getElementById('statusLabel').textContent = t('tap_to_speak');
+      refreshListSelector(); renderList(); updateListStats();
+    }
+
+    function lsLoad() { try { return JSON.parse(localStorage.getItem(lsKey())) || { lists: {} }; } catch { return { lists: {} }; } }
+    function lsSave(d) { localStorage.setItem(lsKey(), JSON.stringify(d)); }
     function lsGetLists() { return Object.values(lsLoad().lists).sort((a, b) => b.created_at - a.created_at); }
     function lsGetItems(lid) { return (lsLoad().lists[lid]?.items || []).sort((a, b) => a.created_at - b.created_at); }
 
@@ -1269,8 +1470,8 @@
       return { item: item || rawText.trim(), qty: qty || '-', brand: brand || '-' };
     }
 
-    function isStopCommand(t) { return STOP_WORDS.some(s => t === s || t.startsWith(s + ' ')); }
-    function isYesCommand(t) { return YES_WORDS.some(s => t === s || t.startsWith(s + ' ')); }
+    function isStopCommand(txt) { return T[lang].stop_words.some(s => txt === s || txt.startsWith(s + ' ')); }
+    function isYesCommand(txt) { return T[lang].yes_words.some(s => txt === s || txt.startsWith(s + ' ')); }
 
     /* ══════════════════════════════════════════════════════
        VOICE COMMAND DETECTION
@@ -1299,46 +1500,46 @@
       showLoading(true);
       const newList = await dbCreateList(name);
       showLoading(false);
-      if (!newList) { speak('माफ़ करें, लिस्ट नहीं बन सकी।'); return; }
+      if (!newList) { speak(t('list_create_fail')); return; }
       allLists = await dbFetchLists();
       await setActiveList(newList.id);
       refreshListSelector(); renderList();
       const prevList = allLists.find(l => l.id !== newList.id);
       if (prevList) {
         pendingNewListId = newList.id; convState = STATES.CONFIRM_COPY;
-        speak(`ठीक है, "${name}" बना दी। आपने पहले "${prevList.list_name}" बनाई थी। क्या मैं वही सामान इस लिस्ट में जोड़ दूँ?`,
+        speak(t('confirm_copy', name, prevList.list_name),
           () => { if (convState === STATES.CONFIRM_COPY) startListening(); });
       } else {
-        speak(`ठीक है, "${name}" सूची बना दी। अब बताइए इसमें क्या सामान जोड़ना है।`, () => { awaitingMore = true; startListening(); });
+        speak(t('list_created', name), () => { awaitingMore = true; startListening(); });
       }
     }
 
     async function handleOpenList(keyword) {
       const found = allLists.find(l => l.list_name.includes(keyword));
-      if (!found) { speak(`माफ़ करें, "${keyword}" वाली लिस्ट नहीं मिली।`); return; }
+      if (!found) { speak(t('list_not_found', keyword)); return; }
       await setActiveList(found.id); refreshListSelector(); renderList();
-      speak(`ठीक है, "${found.list_name}" खोल दी।`, () => { awaitingMore = true; startListening(); });
+      speak(t('list_opened', found.list_name), () => { awaitingMore = true; startListening(); });
     }
 
     async function handleCopyPrev() {
-      if (!activeListId) { speak('पहले एक लिस्ट चुनें।'); return; }
+      if (!activeListId) { speak(t('select_list_first')); return; }
       const prevList = allLists.find(l => l.id !== activeListId);
-      if (!prevList) { speak('कोई पिछली लिस्ट नहीं मिली।'); return; }
+      if (!prevList) { speak(t('no_prev_list')); return; }
       showLoading(true);
       await dbCopyItems(prevList.id, activeListId);
       activeItems = await dbFetchItems(activeListId);
       showLoading(false); renderList();
-      speak('ठीक है, पिछली लिस्ट का सामान जोड़ दिया।', () => { awaitingMore = true; startListening(); });
+      speak(t('items_copied'), () => { awaitingMore = true; startListening(); });
     }
 
     async function confirmClearList() {
-      if (!activeListId || !activeItems.length) { showToast('लिस्ट पहले से खाली है'); return; }
-      if (!confirm('सारा सामान हटाएं?')) return;
+      if (!activeListId || !activeItems.length) { showToast(t('list_already_empty')); return; }
+      if (!confirm(t('confirm_clear'))) return;
       showLoading(true);
       await dbClearItems(activeListId);
       activeItems = [];
       showLoading(false); renderList();
-      showToast('🗑️ लिस्ट साफ हो गई');
+      showToast(t('list_cleared'));
     }
 
     async function handleConfirmCopy(isYes) {
@@ -1350,10 +1551,10 @@
           await dbCopyItems(prevList.id, pendingNewListId);
           activeItems = await dbFetchItems(pendingNewListId);
           showLoading(false); renderList();
-          speak('ठीक है, मैंने पिछली लिस्ट से सामान जोड़ दिया है। और कुछ जोड़ना है?', () => { awaitingMore = true; startListening(); });
+          speak(t('copy_done'), () => { awaitingMore = true; startListening(); });
         }
       } else {
-        speak('ठीक है, नई खाली लिस्ट शुरू करते हैं। बोलकर सामान जोड़ें।', () => { awaitingMore = true; startListening(); });
+        speak(t('new_list_start'), () => { awaitingMore = true; startListening(); });
       }
       pendingNewListId = null;
     }
@@ -1379,10 +1580,10 @@
     function startSilenceCountdown(onDone) {
       clearSilenceCountdown(); silenceLeft = 6;
       countdownSvg.classList.add('visible'); setProgress(0);
-      countdownNum.textContent = `${silenceLeft} सेकंड…`;
+      countdownNum.textContent = t('countdown', silenceLeft);
       silenceTimer = setInterval(() => {
         silenceLeft--; setProgress(1 - silenceLeft / 6);
-        countdownNum.textContent = silenceLeft > 0 ? `${silenceLeft} सेकंड…` : '';
+        countdownNum.textContent = silenceLeft > 0 ? t('countdown', silenceLeft) : '';
         if (silenceLeft <= 0) { clearSilenceCountdown(); if (onDone) onDone(); }
       }, 1000);
     }
@@ -1396,7 +1597,7 @@
     // per page load on a single reused instance; recreating avoids that ceiling entirely.
     function createRecognition() {
       const r = new SR();
-      r.lang = 'hi-IN'; r.continuous = false; r.interimResults = true;
+      r.lang = T[lang].lang_code; r.continuous = false; r.interimResults = true;
       r.onresult = event => {
         clearSilenceCountdown(); clearTimeout(askMoreTimer);
         let interim = '', finalText = '';
@@ -1412,9 +1613,9 @@
         clearSilenceCountdown(); setListeningState(false); listNameMode = false;
         document.getElementById('newListVoiceBtn').classList.remove('active');
         if (e.error === 'no-speech') {
-          if (convState === STATES.CONFIRM_COPY) speak('हाँ या नहीं बोलें।', () => startListening());
-          else if (awaitingMore) speak('और कुछ? आप और कुछ ऐड करना चाहते हैं क्या?', () => { if (awaitingMore) startListening(); });
-        } else if (e.error === 'not-allowed') { showToast('⚠️ माइक की अनुमति दें'); awaitingMore = false; convState = STATES.IDLE; }
+          if (convState === STATES.CONFIRM_COPY) speak(t('say_yes_no'), () => startListening());
+          else if (awaitingMore) speak(t('ask_more'), () => { if (awaitingMore) startListening(); });
+        } else if (e.error === 'not-allowed') { showToast(t('mic_denied')); awaitingMore = false; convState = STATES.IDLE; }
       };
       return r;
     }
@@ -1428,10 +1629,10 @@
 
     function setListeningState(on) {
       isListening = on; micBtn.classList.toggle('listening', on); micBtn.textContent = on ? '🛑' : '🎤';
-      if (on) { statusLabel.textContent = '🔴 सुन रही हूँ…'; }
+      if (on) { statusLabel.textContent = t('listening'); }
       else {
         document.getElementById('newListVoiceBtn').classList.remove('active');
-        if (!awaitingMore && convState === STATES.IDLE) statusLabel.textContent = 'बटन दबाएँ और बोलें';
+        if (!awaitingMore && convState === STATES.IDLE) statusLabel.textContent = t('tap_to_speak');
       }
     }
     /* ── MIC TAP WHILE TTS IS SPEAKING: cancel speech immediately, then listen ── */
@@ -1441,7 +1642,7 @@
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         clearTimeout(askMoreTimer);
-        statusLabel.textContent = 'बोलें…';
+        statusLabel.textContent = t('speak_now');
         setTimeout(() => startListening(), 300);
         return;
       }
@@ -1451,7 +1652,7 @@
     function startListening() {
       if (!SR || isListening) return;
       recognition = createRecognition(); // fresh instance every call — bypasses Chrome session limit
-      transcriptEl.textContent = 'आपकी आवाज़ यहाँ दिखेगी…'; transcriptEl.classList.add('empty');
+      transcriptEl.textContent = t('transcript_ph'); transcriptEl.classList.add('empty');
       try { recognition.start(); setListeningState(true); } catch (e) { setListeningState(false); }
     }
     function stopListening() {
@@ -1463,16 +1664,14 @@
        HANDLE FINAL SPEECH
     ══════════════════════════════════════════════════════ */
     /* ── "चुप" COMMAND: immediately silence TTS and restart listening ── */
-    const HUSH_WORDS = ['चुप', 'चुप करो', 'चुप हो जाओ', 'शांत', 'रुक जाओ'];
-
     async function handleFinalSpeech(text) {
       clearSilenceCountdown(); clearTimeout(askMoreTimer);
-      statusLabel.textContent = 'समझ रही हूँ…';
+      statusLabel.textContent = t('processing');
 
       // Hush command — silences TTS and immediately restarts listening
-      if (HUSH_WORDS.some(w => text === w)) {
+      if (t('hush_words').some(w => text === w)) {
         window.speechSynthesis && window.speechSynthesis.cancel();
-        statusLabel.textContent = 'बोलें…';
+        statusLabel.textContent = t('speak_now');
         setTimeout(() => startListening(), 300);
         return;
       }
@@ -1480,23 +1679,23 @@
       // Confirm copy flow
       if (convState === STATES.CONFIRM_COPY) {
         if (isYesCommand(text)) { await handleConfirmCopy(true); return; }
-        if (isStopCommand(text) || text.includes('नहीं')) { await handleConfirmCopy(false); return; }
-        speak('माफ़ करें, हाँ या नहीं बोलें।', () => startListening()); return;
+        if (isStopCommand(text)) { await handleConfirmCopy(false); return; }
+        speak(t('say_yes_no2'), () => startListening()); return;
       }
 
       // Stop commands
       if (isStopCommand(text)) {
         if (activeListId && activeItems.length === 0 && !emptyListWarned) {
           emptyListWarned = true;
-          statusLabel.textContent = 'लिस्ट खाली है ⚠️';
-          speak('आपकी लिस्ट खाली है। क्या आप कोई चीज़ ऐड करना चाहते हैं?', () => setTimeout(() => startListening(), 500));
+          statusLabel.textContent = t('list_empty_status');
+          speak(t('list_empty_warn'), () => setTimeout(() => startListening(), 500));
           return;
         }
         emptyListWarned = false;
         awaitingMore = false; convState = STATES.IDLE;
-        statusLabel.textContent = 'लिस्ट सेव हो गई ✅';
-        speak('ठीक है, लिस्ट सेव हो गई।');
-        showToast('✅ लिस्ट सेव हो गई!'); return;
+        statusLabel.textContent = t('list_saved_status');
+        speak(t('list_saved'));
+        showToast('✅ ' + t('list_saved')); return;
       }
 
       // Voice commands (list create/open/copy/clear)
@@ -1513,14 +1712,14 @@
 
       // Must have an active list
       if (!activeListId) {
-        speak('पहले एक लिस्ट बनाएं। माइक बटन दबाकर सूची का नाम बोलें।'); return;
+        speak(t('no_list_selected')); return;
       }
 
       // Parse grocery item
       const parsed = parseSpokenText(text);
       parsed.listName = allLists.find(l => l.id === activeListId)?.list_name || null;
       if (!parsed.item || parsed.item.length < 1 || isNonGrocery(text, parsed.item)) {
-        speak('मैं केवल किराना सूची से संबंधित प्रश्न समझ सकती हूँ। कृपया कोई वस्तु जोड़ें या सूची देखें।', () => setTimeout(() => startListening(), 500));
+        speak(t('not_grocery'), () => setTimeout(() => startListening(), 500));
         return;
       }
 
@@ -1531,12 +1730,12 @@
       if (newItem) {
         emptyListWarned = false;
         activeItems.push(newItem); renderList();
-        statusLabel.textContent = `"${parsed.item}" जोड़ा गया ✅`;
-        showToast(`✅ "${parsed.item}" जोड़ा गया`);
-        speak('ठीक है, लिस्ट में जोड़ दिया।', () => {
+        statusLabel.textContent = t('item_added_status', parsed.item);
+        showToast('✅ ' + t('item_added_status', parsed.item));
+        speak(t('item_added_tts'), () => {
           awaitingMore = true;
           askMoreTimer = setTimeout(() => {
-            speak('और कुछ? आप और कुछ ऐड करना चाहते हैं क्या?', () => {
+            speak(t('ask_more'), () => {
               if (awaitingMore) startListening();
             });
           }, 6000);
@@ -1546,7 +1745,7 @@
 
     // New list via voice
     function listenForListName() {
-      if (!recognition) { showToast('⚠️ आवाज़ सपोर्ट नहीं'); return; }
+      if (!SR) { showToast(t('voice_unsupported')); return; }
       document.getElementById('newListVoiceBtn').classList.add('active');
       listNameMode = true;
       try { recognition.start(); setListeningState(true); } catch (e) { }
@@ -1556,7 +1755,7 @@
       document.getElementById('newListVoiceBtn').classList.remove('active');
       document.getElementById('newListInput').value = text;
       setListeningState(false);
-      showToast(`🎙️ "${text}" — "लिस्ट बनाएं" दबाएं`);
+      showToast(t('name_recorded', text));
     }
 
     /* ══════════════════════════════════════════════════════
@@ -1566,8 +1765,9 @@
       if (!window.speechSynthesis) { if (callback) callback(); return; }
       window.speechSynthesis.cancel();
       const utt = new SpeechSynthesisUtterance(text);
-      utt.lang = 'hi-IN'; utt.rate = 0.88; utt.pitch = 1.0; utt.volume = 1.0;
-      const hv = window.speechSynthesis.getVoices().find(v => v.lang === 'hi-IN' || v.lang.startsWith('hi'));
+      const langCode = T[lang].lang_code;
+      utt.lang = langCode; utt.rate = 0.88; utt.pitch = 1.0; utt.volume = 1.0;
+      const hv = window.speechSynthesis.getVoices().find(v => v.lang === langCode || v.lang.startsWith(langCode.split('-')[0]));
       if (hv) utt.voice = hv;
       utt.onend = () => { if (callback) callback(); };
       utt.onerror = () => { if (callback) callback(); };
@@ -1585,7 +1785,7 @@
     function refreshListSelector() {
       const sel = document.getElementById('listSelect');
       sel.innerHTML = '';
-      if (!allLists.length) { sel.innerHTML = '<option value="">— कोई लिस्ट नहीं —</option>'; return; }
+      if (!allLists.length) { sel.innerHTML = `<option value="">— ${t('no_lists_option')} —</option>`; return; }
       allLists.forEach(l => {
         const o = document.createElement('option');
         o.value = l.id; o.textContent = l.list_name; if (l.id === activeListId) o.selected = true;
@@ -1601,9 +1801,9 @@
       const ts = active?.created_at;
       const date = ts ? new Date(typeof ts === 'number' ? ts : ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
       document.getElementById('listStats').innerHTML =
-        `<span class="stat-chip">📦 कुल: ${total}</span>` +
-        `<span class="stat-chip done">✅ हो गया: ${done}</span>` +
-        `<span class="stat-chip">⬜ बाकी: ${total - done}</span>` +
+        `<span class="stat-chip">📦 ${t('stat_total')}: ${total}</span>` +
+        `<span class="stat-chip done">✅ ${t('stat_done')}: ${done}</span>` +
+        `<span class="stat-chip">⬜ ${t('stat_remaining')}: ${total - done}</span>` +
         `<span class="stat-chip">📅 ${date}</span>`;
     }
 
@@ -1619,7 +1819,7 @@
         document.getElementById('newListInput').focus();
         // Step 2 instruction — only when no list exists yet
         if (allLists.length === 0) {
-          speak('अब नीचे छोटे माइक का बटन दबाएं और सूची का नाम बोलें, फिर लिस्ट बनाएं पर क्लिक करें।');
+          speak(t('new_list_instr'));
         }
       }
     }
@@ -1628,7 +1828,7 @@
     async function uiCreateList() {
       if (_creatingList) return;
       const name = document.getElementById('newListInput').value.trim();
-      if (!name) { showToast('⚠️ नाम लिखें'); return; }
+      if (!name) { showToast(t('name_required')); return; }
       _creatingList = true;
       const btn = document.getElementById('createListConfirm');
       btn.disabled = true;
@@ -1642,14 +1842,14 @@
     async function uiDeleteList() {
       const active = allLists.find(l => l.id === activeListId);
       if (!active) return;
-      if (!confirm(`"${active.list_name}" हटाएं?`)) return;
+      if (!confirm(t('confirm_delete', active.list_name))) return;
       showLoading(true);
       await dbDeleteList(activeListId);
       allLists = await dbFetchLists();
       const next = allLists[0] || null;
       await setActiveList(next?.id || null);
       showLoading(false); refreshListSelector(); renderList();
-      showToast('🗑️ लिस्ट हटाई गई');
+      showToast(t('list_deleted'));
     }
 
     /* ══════════════════════════════════════════════════════
@@ -1658,7 +1858,7 @@
     function renderList() {
       const container = document.getElementById('listContainer');
       if (!activeListId || !activeItems.length) {
-        container.innerHTML = `<div class="empty-state"><div class="big">🛒</div>अभी लिस्ट खाली है।<br/>🎤 बोलें: "चावल दो किलो"</div>`;
+        container.innerHTML = `<div class="empty-state"><div class="big">🛒</div>${t('empty_state')}</div>`;
         updateListStats(); return;
       }
       const total = activeItems.length, done = activeItems.filter(i => i.checked).length, pct = Math.round((done / total) * 100);
@@ -1676,10 +1876,10 @@
       }).join('');
       container.innerHTML =
         `<div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
-         <div class="progress-label">${done}/${total} पूरा (${pct}%)</div>
+         <div class="progress-label">${t('progress_label', done, total, pct)}</div>
          <div class="table-wrap">
            <table>
-             <thead><tr><th>✓</th><th>सामान</th><th>मात्रा</th><th>ब्रांड</th><th>तारीख</th><th></th></tr></thead>
+             <thead><tr><th>✓</th><th>${t('th_item')}</th><th>${t('th_qty')}</th><th>${t('th_brand')}</th><th>${t('th_date')}</th><th></th></tr></thead>
              <tbody>${rows}</tbody>
            </table>
          </div>`;
@@ -1696,7 +1896,7 @@
     async function onDelete(id) {
       await dbDeleteItem(id);
       activeItems = activeItems.filter(i => i.id !== id);
-      renderList(); showToast('🗑️ हटाया गया');
+      renderList(); showToast(t('item_deleted'));
     }
 
     /* ══════════════════════════════════════════════════════
@@ -1779,8 +1979,9 @@
       const av = document.getElementById('userAvatar');
       if (currentUser.avatar) av.innerHTML = `<img src="${currentUser.avatar}" onerror="this.parentElement.textContent='👤'"/>`;
       else av.textContent = '👤';
-      document.getElementById('userGreeting').textContent = `नमस्ते, ${currentUser.name.split(' ')[0]} 👋`;
+      document.getElementById('userGreeting').textContent = `${t('greeting_prefix')}, ${currentUser.name.split(' ')[0]} 👋`;
       document.getElementById('guestNotice').style.display = isGuestMode ? 'block' : 'none';
+      document.getElementById('langToggleBtn').textContent = t('lang_btn');
 
       // ── Supabase connectivity test ──
       if (useSupabase()) {
@@ -1812,15 +2013,12 @@
       }
       setTimeout(() => {
         const userName = (currentUser && currentUser.name) ? currentUser.name.split(' ')[0] : '';
-        const greeting = isGuestMode ? 'नमस्ते!' : `नमस्ते ${userName}!`;
+        const greeting = isGuestMode ? `${t('greeting_prefix')}!` : `${t('greeting_prefix')} ${userName}!`;
         let welcomeMsg;
         if (allLists.length > 0) {
-          // User already has lists — just greet and prompt
-          const listName = allLists[0].list_name;
-          welcomeMsg = `${greeting} आपकी "${listName}" सूची तैयार है। माइक बटन दबाकर सामान जोड़ें।`;
+          welcomeMsg = t('welcome_with_list', greeting, allLists[0].list_name);
         } else {
-          // No lists yet — only step 1: tap plus
-          welcomeMsg = `${greeting} शुरू करने के लिए ऊपर प्लस बटन दबाएं।`;
+          welcomeMsg = t('welcome_no_list', greeting);
         }
         speak(welcomeMsg);
       }, 600);
