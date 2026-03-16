@@ -38,6 +38,16 @@ No build step. No dependencies. No server.
     └── database-schema.md       localStorage data shape
 ```
 
+## Voice assistant controls
+
+| Action | What happens |
+|--------|-------------|
+| Tap 🎤 mic button while assistant is speaking | TTS stops immediately, mic starts listening |
+| Say **"चुप"** / "चुप करो" / "शांत" | TTS silenced instantly, mic restarts |
+| Say **"बस"** / "नहीं" / "रुको" | Session ends, list saved |
+
+> **Mute behaviour:** Tapping the mic button at any time — even mid-sentence — cancels ongoing speech synthesis and activates the microphone within 300ms.
+
 ## Tech stack
 
 - Vanilla HTML / CSS / JS — no framework, no build step

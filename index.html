@@ -1309,7 +1309,7 @@
         speak(`ठीक है, "${name}" बना दी। आपने पहले "${prevList.list_name}" बनाई थी। क्या मैं वही सामान इस लिस्ट में जोड़ दूँ?`,
           () => { if (convState === STATES.CONFIRM_COPY) startListening(); });
       } else {
-        speak(`ठीक है, "${name}" बना दी। अब बोलकर सामान जोड़ें।`, () => { awaitingMore = true; startListening(); });
+        speak(`ठीक है, "${name}" सूची बना दी। अब बताइए इसमें क्या सामान जोड़ना है।`, () => { awaitingMore = true; startListening(); });
       }
     }
 
@@ -1428,8 +1428,17 @@
         if (!awaitingMore && convState === STATES.IDLE) statusLabel.textContent = 'बटन दबाएँ और बोलें';
       }
     }
+    /* ── MIC TAP WHILE TTS IS SPEAKING: cancel speech immediately, then listen ── */
     function handleMicClick() {
       if (!recognition) return;
+      // If TTS is playing, cancel it immediately and start listening
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        clearTimeout(askMoreTimer);
+        statusLabel.textContent = 'बोलें…';
+        setTimeout(() => startListening(), 300);
+        return;
+      }
       if (isListening) { stopListening(); return; }
       clearTimeout(askMoreTimer); awaitingMore = false; convState = STATES.IDLE; startListening();
     }
@@ -1446,9 +1455,20 @@
     /* ══════════════════════════════════════════════════════
        HANDLE FINAL SPEECH
     ══════════════════════════════════════════════════════ */
+    /* ── "चुप" COMMAND: immediately silence TTS and restart listening ── */
+    const HUSH_WORDS = ['चुप', 'चुप करो', 'चुप हो जाओ', 'शांत', 'रुक जाओ'];
+
     async function handleFinalSpeech(text) {
       clearSilenceCountdown(); clearTimeout(askMoreTimer);
       statusLabel.textContent = 'समझ रही हूँ…';
+
+      // Hush command — silences TTS and immediately restarts listening
+      if (HUSH_WORDS.some(w => text === w)) {
+        window.speechSynthesis && window.speechSynthesis.cancel();
+        statusLabel.textContent = 'बोलें…';
+        setTimeout(() => startListening(), 300);
+        return;
+      }
 
       // Confirm copy flow
       if (convState === STATES.CONFIRM_COPY) {
@@ -1486,14 +1506,14 @@
 
       // Must have an active list
       if (!activeListId) {
-        speak('पहले एक लिस्ट बनाएं। बोलें: लिस्ट बनाओ।'); return;
+        speak('पहले एक लिस्ट बनाएं। माइक बटन दबाकर सूची का नाम बोलें।'); return;
       }
 
       // Parse grocery item
       const parsed = parseSpokenText(text);
       parsed.listName = allLists.find(l => l.id === activeListId)?.list_name || null;
       if (!parsed.item || parsed.item.length < 1 || isNonGrocery(text, parsed.item)) {
-        speak('क्या आप मुझसे कुछ कहना चाहते हैं? कृपया करके दोबारा दोहराएं, मैं आपकी बात को समझ नहीं पायी।', () => setTimeout(() => startListening(), 500));
+        speak('मैं केवल किराना सूची से संबंधित प्रश्न समझ सकती हूँ। कृपया कोई वस्तु जोड़ें या सूची देखें।', () => setTimeout(() => startListening(), 500));
         return;
       }
 
@@ -1588,15 +1608,28 @@
     function toggleNewListPanel() {
       const p = document.getElementById('newListPanel'), v = p.style.display === 'block';
       p.style.display = v ? 'none' : 'block';
-      if (!v) document.getElementById('newListInput').focus();
+      if (!v) {
+        document.getElementById('newListInput').focus();
+        // Step 2 instruction — only when no list exists yet
+        if (allLists.length === 0) {
+          speak('अब छोटे माइक से सूची का नाम बोलें, फिर लिस्ट बनाएं पर क्लिक करें।');
+        }
+      }
     }
 
+    let _creatingList = false;
     async function uiCreateList() {
+      if (_creatingList) return;
       const name = document.getElementById('newListInput').value.trim();
       if (!name) { showToast('⚠️ नाम लिखें'); return; }
+      _creatingList = true;
+      const btn = document.getElementById('createListConfirm');
+      btn.disabled = true;
       await handleCreateList(name);
       document.getElementById('newListInput').value = '';
       document.getElementById('newListPanel').style.display = 'none';
+      btn.disabled = false;
+      _creatingList = false;
     }
 
     async function uiDeleteList() {
@@ -1771,9 +1804,18 @@
         window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
       }
       setTimeout(() => {
-        speak(isGuestMode
-          ? 'नमस्ते! अतिथि मोड में आपका स्वागत है। माइक बटन दबाएँ और सामान बोलें।'
-          : `नमस्ते ${currentUser.name.split(' ')[0]}! माइक बटन दबाएँ और सामान बोलें।`);
+        const userName = (currentUser && currentUser.name) ? currentUser.name.split(' ')[0] : '';
+        const greeting = isGuestMode ? 'नमस्ते!' : `नमस्ते ${userName}!`;
+        let welcomeMsg;
+        if (allLists.length > 0) {
+          // User already has lists — just greet and prompt
+          const listName = allLists[0].list_name;
+          welcomeMsg = `${greeting} आपकी "${listName}" सूची तैयार है। माइक बटन दबाकर सामान जोड़ें।`;
+        } else {
+          // No lists yet — only step 1: tap plus
+          welcomeMsg = `${greeting} शुरू करने के लिए ऊपर प्लस बटन दबाएं।`;
+        }
+        speak(welcomeMsg);
       }, 600);
     }
 

@@ -1,12 +1,3 @@
-# UI Reference
-
----
-
-## Screen 1 — Landing / Login Screen
-
-![Login screen reference](screenshots/login-screen.png)
-
-> Save the login screen screenshot as `context/screenshots/login-screen.png`
 
 ### Design breakdown
 

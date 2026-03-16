@@ -9,7 +9,7 @@ These are the unrecognized or unrelated inputs the app must gracefully handle.
 **Voice:** आज मौसम कैसा है
 
 **App response (TTS):**
-> "क्या आप मुझसे कुछ कहना चाहते हैं? कृपया करके दोबारा दोहराएं, मैं आपकी बात को समझ नहीं पायी।"
+> "मैं केवल किराना सूची से संबंधित प्रश्न समझ सकता हूँ। कृपया कोई वस्तु जोड़ें या सूची देखें।"
 
 **Action:** Auto-restart listening (same mode)
 

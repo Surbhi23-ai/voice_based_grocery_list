@@ -98,3 +98,13 @@ Any Hindi phrase ≥ 2 characters is accepted as a list name.
 | Bad speech | "क्या आप मुझसे कुछ कहना चाहते हैं? कृपया करके दोबारा दोहराएं, मैं आपकी बात को समझ नहीं पायी।" |
 | New list | "नई लिस्ट के लिए नाम बोलें" |
 | Name too short | "कृपया अपनी लिस्ट का नाम बोलें" |
+
+
+### Voice when the speech should automatically stop
+
+| Trigger | App says |
+|---|---|
+| Stop command | "ठीक है, लिस्ट सेव हो गई।" |
+
+| New list | "नई लिस्ट के लिए नाम बोलें" |
+| Name too short | "कृपया अपनी लिस्ट का नाम बोलें" |
