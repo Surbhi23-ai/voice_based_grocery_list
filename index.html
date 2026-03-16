@@ -1392,14 +1392,12 @@
       countdownSvg.classList.remove('visible'); countdownNum.textContent = ''; setProgress(0);
     }
 
-    if (!SR) {
-      document.getElementById('unsupportedBanner').style.display = 'block';
-      micBtn.disabled = true;
-    } else {
-      recognition = new SR();
-      recognition.lang = 'hi-IN'; recognition.continuous = false; recognition.interimResults = true;
-
-      recognition.onresult = event => {
+    // Create a fresh SpeechRecognition instance each call — Chrome has a ~45-session limit
+    // per page load on a single reused instance; recreating avoids that ceiling entirely.
+    function createRecognition() {
+      const r = new SR();
+      r.lang = 'hi-IN'; r.continuous = false; r.interimResults = true;
+      r.onresult = event => {
         clearSilenceCountdown(); clearTimeout(askMoreTimer);
         let interim = '', finalText = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -1409,8 +1407,8 @@
         transcriptEl.textContent = finalText || interim; transcriptEl.classList.remove('empty');
         if (finalText) { if (listNameMode) handleListNameSpeech(finalText.trim()); else handleFinalSpeech(finalText.trim()); }
       };
-      recognition.onend = () => setListeningState(false);
-      recognition.onerror = e => {
+      r.onend = () => setListeningState(false);
+      r.onerror = e => {
         clearSilenceCountdown(); setListeningState(false); listNameMode = false;
         document.getElementById('newListVoiceBtn').classList.remove('active');
         if (e.error === 'no-speech') {
@@ -1418,6 +1416,14 @@
           else if (awaitingMore) speak('और कुछ? आप और कुछ ऐड करना चाहते हैं क्या?', () => { if (awaitingMore) startListening(); });
         } else if (e.error === 'not-allowed') { showToast('⚠️ माइक की अनुमति दें'); awaitingMore = false; convState = STATES.IDLE; }
       };
+      return r;
+    }
+
+    if (!SR) {
+      document.getElementById('unsupportedBanner').style.display = 'block';
+      micBtn.disabled = true;
+    } else {
+      recognition = createRecognition(); // initial instance so isListening guard works on first tap
     }
 
     function setListeningState(on) {
@@ -1430,7 +1436,7 @@
     }
     /* ── MIC TAP WHILE TTS IS SPEAKING: cancel speech immediately, then listen ── */
     function handleMicClick() {
-      if (!recognition) return;
+      if (!SR) return;
       // If TTS is playing, cancel it immediately and start listening
       if (window.speechSynthesis && window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
@@ -1443,9 +1449,10 @@
       clearTimeout(askMoreTimer); awaitingMore = false; convState = STATES.IDLE; startListening();
     }
     function startListening() {
-      if (!recognition || isListening) return;
+      if (!SR || isListening) return;
+      recognition = createRecognition(); // fresh instance every call — bypasses Chrome session limit
       transcriptEl.textContent = 'आपकी आवाज़ यहाँ दिखेगी…'; transcriptEl.classList.add('empty');
-      try { recognition.start(); setListeningState(true); } catch (e) { }
+      try { recognition.start(); setListeningState(true); } catch (e) { setListeningState(false); }
     }
     function stopListening() {
       clearSilenceCountdown(); clearTimeout(askMoreTimer); awaitingMore = false; listNameMode = false;
