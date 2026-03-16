@@ -1,6 +1,6 @@
 {
   "name": "घर की किराना लिस्ट",
-  "short_name": "किराना",
+  "short_name": "Kirana List",
   "description": "Hindi voice-based grocery list",
   "start_url": "/",
   "display": "standalone",
