@@ -931,11 +931,10 @@
         <div class="user-avatar" id="userAvatar">👤</div>
         <div>
           <div class="header-greeting" id="userGreeting">नमस्ते!</div>
-          <div class="header-title"><img src="/public/assets/logo.png" alt="" /> किराना लिस्ट</div>
+          <div class="header-title" id="headerTitle"><img src="/public/assets/logo.png" alt="" /> किराना लिस्ट</div>
         </div>
       </div>
       <div class="header-right">
-        <button id="langToggleBtn" onclick="toggleLang()">🌐 EN</button>
         <button id="logoutBtn" onclick="logout()">🚪 बाहर</button>
       </div>
     </header>
@@ -1083,7 +1082,7 @@
     /* ══════════════════════════════════════════════════════
        LANGUAGE / i18n
     ══════════════════════════════════════════════════════ */
-    let lang = localStorage.getItem('kiraana_lang') || 'hi';
+    const lang = 'hi'; // App is Hindi-only
 
     const T = {
       hi: {
@@ -1111,6 +1110,8 @@
         welcome_with_list:   (g, n) => `${g} आपकी "${n}" सूची तैयार है। माइक बटन दबाकर सामान जोड़ें।`,
         welcome_no_list:     (g)    => `${g} शुरू करने के लिए ऊपर प्लस बटन दबाएं।`,
         greeting_prefix:     'नमस्ते',
+        app_title:           'किराना लिस्ट',
+        guest_name:          'अतिथि',
         // Status
         listening:           '🔴 सुन रही हूँ…',
         tap_to_speak:        'बटन दबाएँ और बोलें',
@@ -1187,6 +1188,8 @@
         welcome_with_list:   (g, n) => `${g} Your "${n}" list is ready. Press the mic button to add items.`,
         welcome_no_list:     (g)    => `${g} Tap the plus button at the top to get started.`,
         greeting_prefix:     'Hello',
+        app_title:           'Grocery List',
+        guest_name:          'Guest',
         // Status
         listening:           '🔴 Listening…',
         tap_to_speak:        'Press button and speak',
@@ -1245,13 +1248,7 @@
       return typeof val === 'function' ? val(...args) : (val ?? key);
     }
 
-    function toggleLang() {
-      lang = lang === 'hi' ? 'en' : 'hi';
-      localStorage.setItem('kiraana_lang', lang);
-      document.getElementById('langToggleBtn').textContent = t('lang_btn');
-      applyLang();
-      window.speechSynthesis && window.speechSynthesis.cancel();
-    }
+    // Language is locked to Hindi; toggleLang() is disabled
 
     function applyLang() {
       document.getElementById('unsupportedBanner').textContent = t('unsupported_banner');
@@ -1266,6 +1263,14 @@
       document.getElementById('clearBtn').textContent = t('clear_btn');
       document.getElementById('deleteListBtn').textContent = t('delete_list_btn');
       document.querySelector('.loading-text').textContent = t('loading_text');
+      // Update header title
+      const ht = document.getElementById('headerTitle');
+      if (ht) ht.innerHTML = `<img src="/public/assets/logo.png" alt="" /> ${t('app_title')}`;
+      // Update greeting if user is logged in
+      if (currentUser) {
+        const name = isGuestMode ? t('guest_name') : currentUser.name.split(' ')[0];
+        document.getElementById('userGreeting').textContent = `${t('greeting_prefix')}, ${name} 👋`;
+      }
       const tr = document.getElementById('transcript');
       if (tr.classList.contains('empty')) tr.textContent = t('transcript_ph');
       if (!isListening && !awaitingMore) document.getElementById('statusLabel').textContent = t('tap_to_speak');
@@ -1981,7 +1986,6 @@
       else av.textContent = '👤';
       document.getElementById('userGreeting').textContent = `${t('greeting_prefix')}, ${currentUser.name.split(' ')[0]} 👋`;
       document.getElementById('guestNotice').style.display = isGuestMode ? 'block' : 'none';
-      document.getElementById('langToggleBtn').textContent = t('lang_btn');
 
       // ── Supabase connectivity test ──
       if (useSupabase()) {
