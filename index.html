@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+  <link rel="icon" type="image/png" href="/public/assets/logo.png">
+  <link rel="apple-touch-icon" href="/public/assets/icon-192.png">
+  <link rel="manifest" href="/public/manifest.json">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>घर की किराना लिस्ट</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --g-dark: #1b5e20;
+      --g-main: #2e7d32;
+      --g-mid: #388e3c;
+      --g-light: #43a047;
+      --g-pale: #e8f5e9;
+      --g-border: #a5d6a7;
+      --g-accent: #66bb6a;
+      --t-dark: #1b2e1b;
+      --t-mid: #2e4a2e;
+      --t-soft: #4a7a4a;
+      --bg: #f1f8f1;
+      --white: #ffffff;
+      --shadow: rgba(27, 94, 32, 0.15);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Noto Sans Devanagari', 'Mangal', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--t-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ══════════════════════════
+       LOADING OVERLAY
+    ══════════════════════════ */
+    #loadingOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(232, 245, 233, 0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      gap: 16px;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 5px solid var(--g-border);
+      border-top-color: var(--g-main);
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--g-main);
+    }
+
+    /* ══════════════════════════
+       LOGIN SCREEN
+    ══════════════════════════ */
+    #loginScreen {
+      width: 100%;
+      min-height: 100vh;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 100%);
+    }
+
+    .login-logo {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .login-logo img {
+      width: 110px;
+      height: 110px;
+      object-fit: contain;
+      border-radius: 24px;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+
+    .login-title {
+      font-size: clamp(1.7rem, 7vw, 2.4rem);
+      font-weight: 900;
+      color: var(--g-dark);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .login-sub {
+      color: var(--t-soft);
+      font-size: clamp(0.9rem, 4vw, 1.05rem);
+      margin: 8px 0 32px;
+      text-align: center;
+    }
+
+    .login-card {
+      background: var(--white);
+      border-radius: 24px;
+      box-shadow: 0 8px 40px var(--shadow);
+      padding: 36px 28px 32px;
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .login-card h2 {
+      font-size: 1.15rem;
+      color: var(--t-mid);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    #googleBtnContainer {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      min-height: 44px;
+    }
+
+    .login-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 22px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      justify-content: center;
+      font-family: inherit;
+      transition: all 0.2s;
+      border: 2px solid;
+    }
+
+    #fallbackGoogleBtn {
+      background: var(--white);
+      border-color: #dadce0;
+      color: #3c4043;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: none;
+    }
+
+    #fallbackGoogleBtn:hover {
+      border-color: var(--g-mid);
+    }
+
+    #skipLoginBtn {
+      background: #f1f8f1;
+      border-color: var(--g-border);
+      color: var(--g-main);
+    }
+
+    #skipLoginBtn:hover {
+      background: var(--g-pale);
+      border-color: var(--g-main);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      color: #bbb;
+      font-size: 0.82rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e0e0e0;
+    }
+
+    .privacy-note {
+      background: var(--g-pale);
+      border: 1.5px solid var(--g-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.82rem;
+      color: var(--t-mid);
+      text-align: center;
+      width: 100%;
+      line-height: 1.5;
+    }
+
+    .login-note {
+      font-size: 0.78rem;
+      color: #aaa;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ══════════════════════════
+       APP SCREEN
+    ══════════════════════════ */
+    #appScreen {
+      width: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      background: linear-gradient(135deg, var(--g-dark), var(--g-light));
+      padding: 18px 20px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 3px 14px var(--shadow);
+      gap: 12px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      font-size: 1.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      overflow: hidden;
+    }
+
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .header-greeting {
+      font-size: clamp(0.76rem, 3vw, 0.9rem);
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+    }
+
+    .header-title {
+      font-size: clamp(0.95rem, 4.2vw, 1.25rem);
+      color: #fff;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .header-title img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    #logoutBtn {
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    #logoutBtn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    main {
+      width: 100%;
+      max-width: 620px;
+      padding: 20px 16px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── GUEST BADGE ── */
+    .guest-badge {
+      background: #fff3cd;
+      border: 1.5px solid #ffc107;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #856404;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .guest-badge button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 800;
+      color: #0d6efd;
+      font-size: 0.82rem;
+      padding: 0 4px;
+    }
+
+    /* ── LIST MANAGER ── */
+    .list-manager {
+      background: var(--white);
+      border-radius: 18px;
+      box-shadow: 0 4px 20px var(--shadow);
+      padding: 18px 16px 14px;
+    }
+
+    .section-label {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--g-main);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .list-selector-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #listSelect {
+      flex: 1;
+      padding: 12px 36px 12px 14px;
+      border: 2px solid var(--g-border);
+      border-radius: 12px;
+      font-size: clamp(0.88rem, 3.8vw, 1rem);
+      font-family: inherit;
+      font-weight: 600;
+      color: var(--t-mid);
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background: var(--g-pale) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%232e7d32' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 12px center;
+    }
+
+    #listSelect:focus {
+      border-color: var(--g-main);
+    }
+
+    #newListBtn {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, var(--g-dark), var(--g-light));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.3rem;
+      cursor: pointer;
+      box-shadow: 0 3px 10px var(--shadow);
+      flex-shrink: 0;
+      transition: transform 0.1s;
+    }
+
+    #newListBtn:active {
+      transform: scale(0.93);
+    }
+
+    #newListPanel {
+      display: none;
+      margin-top: 14px;
+      background: var(--g-pale);
+      border: 2px dashed var(--g-border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .new-list-label {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--t-mid);
+      margin-bottom: 10px;
+    }
+
+    .new-list-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    #newListInput {
+      flex: 1;
+      padding: 11px 14px;
+      border: 2px solid var(--g-border);
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      background: var(--white);
+      color: var(--t-dark);
+    }
+
+    #newListInput:focus {
+      border-color: var(--g-main);
+    }
+
+    #newListVoiceBtn {
+      padding: 11px 14px;
+      background: var(--g-main);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    #newListVoiceBtn.active {
+      background: var(--g-dark);
+    }
+
+    #createListConfirm {
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
+      background: var(--g-main);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    #createListConfirm:hover {
+      background: var(--g-dark);
+    }
+
+    .list-stats {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      padding: 5px 12px;
+      background: var(--g-pale);
+      border: 1px solid var(--g-border);
+      border-radius: 20px;
+      font-size: 0.76rem;
+      color: var(--t-mid);
+      font-weight: 600;
+    }
+
+    .stat-chip.done {
+      background: #c8e6c9;
+      border-color: #81c784;
+      color: var(--g-dark);
+    }
+
+    /* ── VOICE CARD ── */
+    .voice-card {
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: 0 4px 20px var(--shadow);
+      padding: 24px 20px 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .instruction {
+      font-size: clamp(1rem, 4.5vw, 1.2rem);
+      color: var(--t-mid);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .countdown-ring {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #micBtn {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, var(--g-dark), var(--g-light));
+      border: none;
+      cursor: pointer;
+      font-size: 3.2rem;
+      color: #fff;
+      box-shadow: 0 6px 24px var(--shadow);
+      transition: transform 0.15s, background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      outline: none;
+    }
+
+    #micBtn:active {
+      transform: scale(0.93);
+    }
+
+    #micBtn.listening {
+      background: linear-gradient(145deg, #1a3a1a, var(--g-mid));
+      animation: pulse-ring 1.2s ease-out infinite;
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.55);
+      }
+
+      70% {
+        box-shadow: 0 0 0 22px rgba(46, 125, 50, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(46, 125, 50, 0);
+      }
+    }
+
+    #countdownSvg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 138px;
+      height: 138px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #countdownSvg.visible {
+      opacity: 1;
+    }
+
+    #countdownCircle {
+      fill: none;
+      stroke: var(--g-accent);
+      stroke-width: 5;
+      stroke-linecap: round;
+      stroke-dasharray: 408;
+      stroke-dashoffset: 0;
+      transform-origin: center;
+      transform: rotate(-90deg);
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    #statusLabel {
+      font-size: clamp(0.95rem, 4vw, 1.1rem);
+      font-weight: 700;
+      color: var(--g-main);
+      text-align: center;
+      min-height: 1.5em;
+    }
+
+    #countdownNum {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--g-accent);
+      text-align: center;
+      min-height: 1.3em;
+    }
+
+    #transcript {
+      width: 100%;
+      background: var(--g-pale);
+      border: 2px dashed var(--g-border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: clamp(1rem, 4.2vw, 1.15rem);
+      color: var(--t-mid);
+      min-height: 52px;
+      text-align: center;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    #transcript.empty {
+      color: #81a881;
+      font-style: italic;
+    }
+
+    /* ── GROCERY LIST ── */
+    .list-section {
+      width: 100%;
+    }
+
+    .list-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .list-title {
+      font-size: clamp(1rem, 4.5vw, 1.25rem);
+      font-weight: 800;
+      color: var(--t-mid);
+    }
+
+    .list-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 9px 14px;
+      border-radius: 20px;
+      font-size: clamp(0.76rem, 3vw, 0.88rem);
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    #clearBtn {
+      background: var(--g-pale);
+      border: 2px solid var(--g-main);
+      color: var(--g-dark);
+    }
+
+    #clearBtn:active {
+      background: var(--g-main);
+      color: #fff;
+    }
+
+    #deleteListBtn {
+      background: #ffeef0;
+      border: 2px solid #c62828;
+      color: #c62828;
+    }
+
+    #deleteListBtn:active {
+      background: #c62828;
+      color: #fff;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: #81a881;
+      font-size: clamp(0.95rem, 4vw, 1.1rem);
+    }
+
+    .empty-state .big {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      background: #c8e6c9;
+      border-radius: 20px;
+      height: 8px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--g-dark), var(--g-accent));
+      border-radius: 20px;
+      transition: width 0.4s;
+    }
+
+    .progress-label {
+      font-size: 0.78rem;
+      color: var(--t-mid);
+      font-weight: 600;
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px var(--shadow);
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      border-radius: 16px;
+      overflow: hidden;
+      font-size: clamp(0.8rem, 3.4vw, 0.93rem);
+    }
+
+    thead tr {
+      background: linear-gradient(135deg, var(--g-dark), var(--g-light));
+      color: #fff;
+    }
+
+    thead th {
+      padding: 11px 8px;
+      text-align: center;
+      font-weight: 700;
+      font-size: clamp(0.7rem, 2.8vw, 0.85rem);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #c8e6c9;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f9fdf9;
+    }
+
+    tbody tr.checked-row {
+      opacity: 0.5;
+    }
+
+    tbody tr.checked-row td.item-name,
+    tbody tr.checked-row td.qty-col,
+    tbody tr.checked-row td.brand-col,
+    tbody tr.checked-row td.date-col {
+      text-decoration: line-through;
+    }
+
+    td {
+      padding: 12px 8px;
+      text-align: center;
+      vertical-align: middle;
+      word-break: break-word;
+    }
+
+    td.item-name {
+      font-weight: 700;
+      color: var(--g-dark);
+    }
+
+    td.brand-col {
+      color: var(--t-soft);
+      font-style: italic;
+    }
+
+    td.date-col {
+      color: #888;
+      font-size: 0.74rem;
+    }
+
+    .check-btn {
+      background: none;
+      border: 2px solid var(--g-border);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .check-btn.done {
+      background: var(--g-main);
+      border-color: var(--g-main);
+      color: #fff;
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px 6px;
+      border-radius: 8px;
+      color: #c62828;
+    }
+
+    .del-btn:active {
+      background: #ffeef0;
+    }
+
+    /* ── UNSUPPORTED ── */
+    #unsupportedBanner {
+      display: none;
+      background: #c62828;
+      color: #fff;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      width: 100%;
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--g-dark);
+      color: #fff;
+      padding: 13px 22px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 9999;
+      text-align: center;
+      max-width: 88vw;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 400px) {
+      .new-list-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LOADING -->
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">लोड हो रहा है…</div>
+  </div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen">
+    <div class="login-logo"><img src="/public/assets/logo.png" alt="किराना लिस्ट लोगो" /></div>
+    <h1 class="login-title">घर की किराना लिस्ट</h1>
+    <p class="login-sub">आवाज़ से सामान जोड़ें — आसान और तेज़</p>
+    <div class="login-card">
+      <h2>👋 अपने Gmail से लॉगिन करें</h2>
+      <div id="googleBtnContainer"></div>
+      <button id="fallbackGoogleBtn" class="login-btn" onclick="fallbackLogin()">
+        <svg width="20" height="20" viewBox="0 0 24 24">
+          <path fill="#4285F4"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+          <path fill="#34A853"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+          <path fill="#FBBC05"
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+          <path fill="#EA4335"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+        </svg>
+        Google से साइन इन करें
+      </button>
+      <div class="divider">या</div>
+      <button id="skipLoginBtn" class="login-btn" onclick="skipLogin()">
+        👤 &nbsp; अभी के लिए छोड़ें
+      </button>
+      <div class="privacy-note">🔒 आपकी जानकारी सुरक्षित है।<br />सिर्फ नाम और प्रोफाइल फोटो उपयोग होगी।</div>
+      <p class="login-note">लॉगिन करने के बाद आपकी किराना लिस्ट<br />इसी डिवाइस पर सेव रहेगी।</p>
+    </div>
+  </div>
+
+  <!-- APP SCREEN -->
+  <div id="appScreen">
+    <header>
+      <div class="header-left">
+        <div class="user-avatar" id="userAvatar">👤</div>
+        <div>
+          <div class="header-greeting" id="userGreeting">नमस्ते!</div>
+          <div class="header-title"><img src="/public/assets/logo.png" alt="" /> किराना लिस्ट</div>
+        </div>
+      </div>
+      <button id="logoutBtn" onclick="logout()">🚪 बाहर</button>
+    </header>
+
+    <main>
+      <div id="unsupportedBanner">⚠️ कृपया Chrome (Android) में खोलें।</div>
+
+      <!-- Guest notice -->
+      <div id="guestNotice" style="display:none">
+        <div class="guest-badge">
+          👤 अतिथि मोड — डेटा सिर्फ इस डिवाइस पर सेव है
+          <button onclick="showLoginScreen()">लॉगिन करें →</button>
+        </div>
+      </div>
+
+      <!-- List Manager -->
+      <div class="list-manager">
+        <div class="section-label">📂 लिस्ट चुनें</div>
+        <div class="list-selector-row">
+          <select id="listSelect" onchange="onListSelectChange(this.value)"></select>
+          <button id="newListBtn" onclick="toggleNewListPanel()" title="नई लिस्ट">➕</button>
+        </div>
+        <div id="newListPanel">
+          <div class="new-list-label">✏️ नाम लिखें या बोलें</div>
+          <div class="new-list-row">
+            <input id="newListInput" type="text" placeholder="जैसे: मार्च का सामान" />
+            <button id="newListVoiceBtn" onclick="listenForListName()" title="बोलकर नाम दें">🎤</button>
+          </div>
+          <button id="createListConfirm" onclick="uiCreateList()">✅ लिस्ट बनाएं</button>
+        </div>
+        <div class="list-stats" id="listStats"></div>
+      </div>
+
+      <!-- Voice Card -->
+      <div class="voice-card">
+        <p class="instruction">🎙️ बोलकर सामान जोड़ें</p>
+        <div class="countdown-ring">
+          <button id="micBtn" onclick="handleMicClick()">🎤</button>
+          <svg id="countdownSvg" viewBox="0 0 138 138">
+            <circle id="countdownCircle" cx="69" cy="69" r="65" />
+          </svg>
+        </div>
+        <div id="statusLabel">बटन दबाएँ और बोलें</div>
+        <div id="countdownNum"></div>
+        <div id="transcript" class="empty">आपकी आवाज़ यहाँ दिखेगी…</div>
+      </div>
+
+      <!-- Grocery List -->
+      <div class="list-section">
+        <div class="list-header">
+          <span class="list-title" id="activeListTitle">📋 सामान</span>
+          <div class="list-actions">
+            <button class="action-btn" id="clearBtn" onclick="confirmClearList()">🗑️ साफ करें</button>
+            <button class="action-btn" id="deleteListBtn" onclick="uiDeleteList()">❌ लिस्ट हटाएं</button>
+          </div>
+        </div>
+        <div id="listContainer"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    /* ══════════════════════════════════════════════════════
+       CONFIG — replace with your Google Client ID
+    ══════════════════════════════════════════════════════ */
+    const GOOGLE_CLIENT_ID = "197910257787-7as64e688d2a3bs689fs6uh8etn6tv99.apps.googleusercontent.com";
+    const SUPABASE_URL = "https://dutjvxlpeilhnssbiwsd.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dGp2eGxwZWlsaG5zc2Jpd3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTIzODQsImV4cCI6MjA4OTEyODM4NH0.H8wMcOD-LzqTkGW55pO_5F8tDcHayUqjTrvYdbovCCU";
+
+    /* ══════════════════════════════════════════════════════
+           HINDI WORD MAPS
+        ══════════════════════════════════════════════════════ */
+    const HINDI_NUMBERS = {
+      'एक': 1, 'दो': 2, 'तीन': 3, 'चार': 4, 'पाँच': 5, 'पांच': 5,
+      'छः': 6, 'छह': 6, 'सात': 7, 'आठ': 8, 'नौ': 9, 'दस': 10,
+      'बारह': 12, 'पंद्रह': 15, 'बीस': 20, 'पच्चीस': 25,
+      'तीस': 30, 'पचास': 50, 'सौ': 100, 'आधा': '½', 'डेढ़': '1½', 'ढाई': '2½'
+    };
+
+    const UNITS = ['किलोग्राम', 'किलो', 'ग्राम', 'लीटर', 'मिलीलीटर', 'मिली', 'पैकेट', 'पैक', 'डब्बा', 'बोतल', 'दर्जन', 'थैली', 'कट्टा', 'पीस', 'नग'];
+
+    const PAV_MAP = [
+      { str: 'चार पाव', q: '1 किलोग्राम' },
+      { str: 'तीन पाव', q: '750 ग्राम' },
+      { str: 'ढाई पाव', q: '625 ग्राम' },
+      { str: 'दो पाव', q: '500 ग्राम' },
+      { str: 'डेढ़ पाव', q: '375 ग्राम' },
+      { str: 'डेढ पाव', q: '375 ग्राम' },
+      { str: 'पाव भर', q: '250 ग्राम' },
+      { str: 'एक पाव', q: '250 ग्राम' },
+      { str: 'पाव', q: '250 ग्राम' },
+    ];
+
+    const KNOWN_BRANDS = ['अमूल', 'पतंजलि', 'नेस्ले', 'हल्दीराम', 'बिसलेरी', 'टाटा', 'आशीर्वाद', 'अन्नपूर्णा', 'मदर डेयरी', 'ब्रिटानिया', 'परले', 'लिज्जत', 'सफोला', 'फॉर्च्यून', 'डाबर', 'मैगी', 'कोलगेट', 'सर्फ', 'रिन', 'टाइड', 'विम', 'बाबा', 'रियो', 'पारले', 'सनफीस्ट'];
+
+    const STOP_WORDS = ['बस', 'अभी नहीं', 'नहीं', 'रुको', 'बंद करो', 'नही', 'काफी है', 'ठीक है बस'];
+    const YES_WORDS = ['हाँ', 'हां', 'हा', 'जी हाँ', 'जी हां', 'बिल्कुल', 'ज़रूर', 'जरूर', 'हाँ जी'];
+    const HINDI_MONTHS = ['जनवरी', 'फरवरी', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुलाई', 'अगस्त', 'सितंबर', 'अक्टूबर', 'नवंबर', 'दिसंबर'];
+
+    /* ══════════════════════════════════════════════════════
+       NON-GROCERY DETECTION
+       Source of truth: context/negative-behaviors.md
+       Detects Hindi sentences vs grocery phrases by looking
+       for verbs, question words, and pronouns in raw speech.
+    ══════════════════════════════════════════════════════ */
+    const NG_VERBS = ['है', 'हैं', 'था', 'थी', 'थे', 'हो', 'होगा', 'होगी', 'होंगे', 'करना', 'करो', 'करें', 'करता', 'करती', 'करते', 'बताओ', 'बताएं', 'बता', 'देना', 'लेना', 'जाओ', 'आओ', 'बोलो', 'सुनो', 'पूछो', 'चाहिए', 'लगता', 'लगती', 'मिलेगा', 'मिलेगी'];
+    const NG_QUESTIONS = ['कैसा', 'कैसे', 'कैसी', 'क्या', 'कब', 'कहाँ', 'कहां', 'कौन', 'क्यों', 'क्योंकि', 'किसका', 'किसकी', 'किसके', 'कितना', 'कितने', 'कितनी'];
+    const NG_PRONOUNS = ['मैं', 'मुझे', 'मुझको', 'मेरा', 'मेरी', 'मेरे', 'तुम', 'तुमको', 'तुम्हारा', 'आपको', 'आपका', 'वो', 'वह', 'उसे', 'उसको', 'हमें', 'हमारा', 'यह', 'इसे', 'इसको'];
+
+    function isNonGrocery(rawText, parsedItem) {
+      const words = rawText.trim().split(/\s+/);
+      // Has a Hindi verb → it's a sentence, not a grocery item
+      if (NG_VERBS.some(v => words.includes(v))) return true;
+      // Has a question word → definitely not grocery
+      if (NG_QUESTIONS.some(q => words.includes(q))) return true;
+      // Has a personal pronoun → conversational speech
+      if (NG_PRONOUNS.some(p => words.includes(p))) return true;
+      // After NLP stripping, item name is too long → sentence fragment
+      if (parsedItem && parsedItem.trim().split(/\s+/).length > 4) return true;
+      return false;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       APP STATE
+    ══════════════════════════════════════════════════════ */
+    let currentUser = null;
+    let activeListId = null;
+    let allLists = [];
+    let activeItems = [];
+    let isGuestMode = false;
+
+    const STATES = { IDLE: 'idle', CONFIRM_COPY: 'confirm_copy', LIST_NAME: 'list_name' };
+    let convState = STATES.IDLE;
+    let pendingNewListId = null;
+    let emptyListWarned = false;
+
+    /* ══════════════════════════════════════════════════════
+       LOCALSTORAGE (single source of truth — no backend needed)
+    ══════════════════════════════════════════════════════ */
+    const LS_LISTS = 'kiraana_lists_v1';
+    const LS_USER = 'kiraana_user_v3';
+
+    function lsLoad() { try { return JSON.parse(localStorage.getItem(LS_LISTS)) || { lists: {} }; } catch { return { lists: {} }; } }
+    function lsSave(d) { localStorage.setItem(LS_LISTS, JSON.stringify(d)); }
+    function lsGetLists() { return Object.values(lsLoad().lists).sort((a, b) => b.created_at - a.created_at); }
+    function lsGetItems(lid) { return (lsLoad().lists[lid]?.items || []).sort((a, b) => a.created_at - b.created_at); }
+
+    function lsCreateList(name) {
+      const d = lsLoad(), id = 'ls_' + Date.now();
+      d.lists[id] = { id, list_name: name, created_at: Date.now(), items: [] };
+      lsSave(d); return d.lists[id];
+    }
+    function lsDeleteList(id) { const d = lsLoad(); delete d.lists[id]; lsSave(d); }
+    function lsClearItems(lid) { const d = lsLoad(); if (d.lists[lid]) d.lists[lid].items = []; lsSave(d); }
+    function lsAddItem(lid, parsed) {
+      const d = lsLoad(); if (!d.lists[lid]) return null;
+      const it = { id: 'i_' + Date.now(), list_id: lid, item_name: parsed.item, quantity: parsed.qty, brand: parsed.brand, checked: false, created_at: Date.now() };
+      d.lists[lid].items.push(it); lsSave(d); return it;
+    }
+    function lsToggleItem(id, checked) {
+      const d = lsLoad();
+      for (const l of Object.values(d.lists)) { const it = l.items.find(i => i.id === id); if (it) { it.checked = checked; break; } }
+      lsSave(d);
+    }
+    function lsDeleteItem(id) {
+      const d = lsLoad();
+      for (const l of Object.values(d.lists)) { l.items = l.items.filter(i => i.id !== id); }
+      lsSave(d);
+    }
+    function lsCopyItems(fromId, toId) {
+      const d = lsLoad();
+      (d.lists[fromId]?.items || []).forEach(i => {
+        d.lists[toId].items.push({ ...i, id: 'i_' + Date.now() + Math.random(), list_id: toId, checked: false, created_at: Date.now() });
+      });
+      lsSave(d);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       SUPABASE CLIENT — initialised once, reused everywhere
+    ══════════════════════════════════════════════════════ */
+    let _sb = null;
+    function getSupabase() {
+      if (!_sb) _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      return _sb;
+    }
+
+    /* ── Supabase helpers ── */
+    async function sbFetchLists(userId) {
+      const { data, error } = await getSupabase()
+        .from('grocery_lists')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (error) { console.error('sbFetchLists', error); return []; }
+      return data;
+    }
+    async function sbCreateList(userId, name) {
+      const { data, error } = await getSupabase()
+        .from('grocery_lists')
+        .insert({ user_id: userId, email: currentUser.email || null, list_name: name })
+        .select()
+        .single();
+      if (error) { console.error('sbCreateList', error); showToast('⚠️ लिस्ट नहीं बनी: ' + error.message); return null; }
+      return data;
+    }
+    async function sbDeleteList(id) {
+      const { error } = await getSupabase().from('grocery_lists').delete().eq('id', id);
+      if (error) console.error('sbDeleteList', error);
+    }
+    async function sbFetchItems(listId) {
+      const { data, error } = await getSupabase()
+        .from('grocery_items')
+        .select('*')
+        .eq('list_id', listId)
+        .order('created_at', { ascending: true });
+      if (error) { console.error('sbFetchItems', error); return []; }
+      return data;
+    }
+    async function sbAddItem(listId, parsed) {
+      console.log('[sbAddItem] listId:', listId, 'listName:', parsed.listName, 'parsed:', parsed);
+      const { data, error } = await getSupabase()
+        .from('grocery_items')
+        .insert({ list_id: listId, list_name: parsed.listName || null, item_name: parsed.item, quantity: parsed.qty, brand: parsed.brand, checked: false })
+        .select()
+        .single();
+      if (error) {
+        console.error('[sbAddItem] FAILED:', error);
+        showToast('⚠️ Item error: ' + error.message);
+        return null;
+      }
+      console.log('[sbAddItem] SUCCESS:', data);
+      return data;
+    }
+    async function sbToggleItem(id, checked) {
+      const { error } = await getSupabase().from('grocery_items').update({ checked }).eq('id', id);
+      if (error) console.error('sbToggleItem', error);
+    }
+    async function sbDeleteItem(id) {
+      const { error } = await getSupabase().from('grocery_items').delete().eq('id', id);
+      if (error) console.error('sbDeleteItem', error);
+    }
+    async function sbClearItems(listId) {
+      const { error } = await getSupabase().from('grocery_items').delete().eq('list_id', listId);
+      if (error) console.error('sbClearItems', error);
+    }
+    async function sbCopyItems(fromId, toId) {
+      const items = await sbFetchItems(fromId);
+      if (!items.length) return;
+      const copies = items.map(i => ({ list_id: toId, item_name: i.item_name, quantity: i.quantity, brand: i.brand, checked: false }));
+      const { error } = await getSupabase().from('grocery_items').insert(copies);
+      if (error) console.error('sbCopyItems', error);
+    }
+
+    /* ── Unified async wrappers: Supabase when logged in, localStorage for guests ── */
+    function useSupabase() { return !isGuestMode && currentUser && currentUser.sub !== 'guest_local_001'; }
+
+    async function dbFetchLists() {
+      if (!useSupabase()) return lsGetLists();
+      const r = await sbFetchLists(currentUser.sub);
+      console.log('[db] fetchLists:', r);
+      return r.length ? r : lsGetLists();
+    }
+    async function dbCreateList(name) {
+      if (!useSupabase()) return lsCreateList(name);
+      const r = await sbCreateList(currentUser.sub, name);
+      console.log('[db] createList:', r);
+      if (!r) { showToast('⚠️ Supabase failed — saving locally'); return lsCreateList(name); }
+      return r;
+    }
+    async function dbDeleteList(id) {
+      if (useSupabase()) await sbDeleteList(id); else lsDeleteList(id);
+    }
+    async function dbFetchItems(id) {
+      if (!useSupabase()) return lsGetItems(id);
+      const r = await sbFetchItems(id);
+      console.log('[db] fetchItems:', r);
+      return r;
+    }
+    async function dbAddItem(lid, parsed) {
+      if (!useSupabase()) return lsAddItem(lid, parsed);
+      const r = await sbAddItem(lid, parsed);
+      console.log('[db] addItem:', r);
+      if (!r) { showToast('⚠️ Supabase failed — saving locally'); return lsAddItem(lid, parsed); }
+      return r;
+    }
+    async function dbToggleItem(id, c) { useSupabase() ? await sbToggleItem(id, c) : lsToggleItem(id, c); }
+    async function dbDeleteItem(id) { useSupabase() ? await sbDeleteItem(id) : lsDeleteItem(id); }
+    async function dbClearItems(lid) { useSupabase() ? await sbClearItems(lid) : lsClearItems(lid); }
+    async function dbCopyItems(f, t) { useSupabase() ? await sbCopyItems(f, t) : lsCopyItems(f, t); }
+
+    /* ══════════════════════════════════════════════════════
+       DATE  DD/MM/YYYY
+    ══════════════════════════════════════════════════════ */
+    function todayFormatted() {
+      const d = new Date();
+      return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       NLP — ITEM PARSING
+    ══════════════════════════════════════════════════════ */
+    function parseSpokenText(rawText) {
+      let text = rawText.trim(), brand = null, qty = null;
+
+      // Brand extraction
+      for (const b of KNOWN_BRANDS) {
+        if (text.includes(b)) { brand = b; text = text.replace(b, '').trim(); break; }
+      }
+
+      // पाव conversion (check before generic units)
+      for (const { str, q } of PAV_MAP) {
+        if (text.includes(str)) { qty = q; text = text.replace(str, '').trim(); break; }
+      }
+
+      // Generic unit + number extraction
+      if (!qty) {
+        const words = text.split(/\s+/);
+        let qNum = null, qUnit = null, usedIdx = [];
+        for (let i = 0; i < words.length; i++) {
+          const w = words[i];
+          if (HINDI_NUMBERS[w] !== undefined && qNum === null) {
+            qNum = HINDI_NUMBERS[w]; usedIdx.push(i);
+            if (i + 1 < words.length && UNITS.includes(words[i + 1])) { qUnit = words[i + 1]; usedIdx.push(i + 1); }
+            break;
+          }
+          if (/^\d+(\.\d+)?$/.test(w) && qNum === null) {
+            qNum = w; usedIdx.push(i);
+            if (i + 1 < words.length && UNITS.includes(words[i + 1])) { qUnit = words[i + 1]; usedIdx.push(i + 1); }
+            break;
+          }
+          if (UNITS.includes(w) && !qUnit) { qUnit = w; usedIdx.push(i); }
+        }
+        if (qNum !== null || qUnit !== null) qty = [qNum || '', qUnit || ''].filter(Boolean).join(' ');
+        text = words.filter((_, i) => !usedIdx.includes(i)).join(' ').trim();
+      }
+
+      const item = text.replace(/\s+/g, ' ').trim();
+      return { item: item || rawText.trim(), qty: qty || '-', brand: brand || '-' };
+    }
+
+    function isStopCommand(t) { return STOP_WORDS.some(s => t === s || t.startsWith(s + ' ')); }
+    function isYesCommand(t) { return YES_WORDS.some(s => t === s || t.startsWith(s + ' ')); }
+
+    /* ══════════════════════════════════════════════════════
+       VOICE COMMAND DETECTION
+    ══════════════════════════════════════════════════════ */
+    function detectVoiceCommand(text) {
+      const t = text.trim();
+      if (t.includes('लिस्ट बनाओ') || t.includes('लिस्ट बनाएं') || t.includes('नई लिस्ट')) {
+        const month = HINDI_MONTHS.find(m => t.includes(m));
+        const name = month ? `${month} की किराना लिस्ट` : t.replace(/लिस्ट बनाओ|लिस्ट बनाएं|नई लिस्ट|बनाओ|बनाएं/g, '').trim() || 'नई लिस्ट';
+        return { type: 'CREATE_LIST', name };
+      }
+      if (t.includes('लिस्ट खोलो') || t.includes('लिस्ट खोलें')) {
+        const month = HINDI_MONTHS.find(m => t.includes(m));
+        const keyword = month || t.replace(/लिस्ट खोलो|लिस्ट खोलें|खोलो|खोलें/g, '').trim();
+        return { type: 'OPEN_LIST', keyword };
+      }
+      if (t.includes('पिछले महीने') || t.includes('पुरानी लिस्ट') || t.includes('पिछली लिस्ट')) return { type: 'COPY_PREV' };
+      if (t.includes('लिस्ट साफ') || t.includes('साफ कर दो') || t.includes('सब हटाओ')) return { type: 'CLEAR_LIST' };
+      return null;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       VOICE COMMAND HANDLERS
+    ══════════════════════════════════════════════════════ */
+    async function handleCreateList(name) {
+      showLoading(true);
+      const newList = await dbCreateList(name);
+      showLoading(false);
+      if (!newList) { speak('माफ़ करें, लिस्ट नहीं बन सकी।'); return; }
+      allLists = await dbFetchLists();
+      await setActiveList(newList.id);
+      refreshListSelector(); renderList();
+      const prevList = allLists.find(l => l.id !== newList.id);
+      if (prevList) {
+        pendingNewListId = newList.id; convState = STATES.CONFIRM_COPY;
+        speak(`ठीक है, "${name}" बना दी। आपने पहले "${prevList.list_name}" बनाई थी। क्या मैं वही सामान इस लिस्ट में जोड़ दूँ?`,
+          () => { if (convState === STATES.CONFIRM_COPY) startListening(); });
+      } else {
+        speak(`ठीक है, "${name}" बना दी। अब बोलकर सामान जोड़ें।`, () => { awaitingMore = true; startListening(); });
+      }
+    }
+
+    async function handleOpenList(keyword) {
+      const found = allLists.find(l => l.list_name.includes(keyword));
+      if (!found) { speak(`माफ़ करें, "${keyword}" वाली लिस्ट नहीं मिली।`); return; }
+      await setActiveList(found.id); refreshListSelector(); renderList();
+      speak(`ठीक है, "${found.list_name}" खोल दी।`, () => { awaitingMore = true; startListening(); });
+    }
+
+    async function handleCopyPrev() {
+      if (!activeListId) { speak('पहले एक लिस्ट चुनें।'); return; }
+      const prevList = allLists.find(l => l.id !== activeListId);
+      if (!prevList) { speak('कोई पिछली लिस्ट नहीं मिली।'); return; }
+      showLoading(true);
+      await dbCopyItems(prevList.id, activeListId);
+      activeItems = await dbFetchItems(activeListId);
+      showLoading(false); renderList();
+      speak('ठीक है, पिछली लिस्ट का सामान जोड़ दिया।', () => { awaitingMore = true; startListening(); });
+    }
+
+    async function confirmClearList() {
+      if (!activeListId || !activeItems.length) { showToast('लिस्ट पहले से खाली है'); return; }
+      if (!confirm('सारा सामान हटाएं?')) return;
+      showLoading(true);
+      await dbClearItems(activeListId);
+      activeItems = [];
+      showLoading(false); renderList();
+      showToast('🗑️ लिस्ट साफ हो गई');
+    }
+
+    async function handleConfirmCopy(isYes) {
+      convState = STATES.IDLE;
+      if (isYes) {
+        const prevList = allLists.find(l => l.id !== pendingNewListId);
+        if (prevList && pendingNewListId) {
+          showLoading(true);
+          await dbCopyItems(prevList.id, pendingNewListId);
+          activeItems = await dbFetchItems(pendingNewListId);
+          showLoading(false); renderList();
+          speak('ठीक है, मैंने पिछली लिस्ट से सामान जोड़ दिया है। और कुछ जोड़ना है?', () => { awaitingMore = true; startListening(); });
+        }
+      } else {
+        speak('ठीक है, नई खाली लिस्ट शुरू करते हैं। बोलकर सामान जोड़ें।', () => { awaitingMore = true; startListening(); });
+      }
+      pendingNewListId = null;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       SPEECH RECOGNITION
+    ══════════════════════════════════════════════════════ */
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null, isListening = false, awaitingMore = false, listNameMode = false;
+    let askMoreTimer = null;
+    const CIRCUMFERENCE = 2 * Math.PI * 65;
+    let silenceTimer = null, silenceLeft = 0;
+
+    const micBtn = document.getElementById('micBtn');
+    const statusLabel = document.getElementById('statusLabel');
+    const transcriptEl = document.getElementById('transcript');
+    const countdownSvg = document.getElementById('countdownSvg');
+    const countdownCircle = document.getElementById('countdownCircle');
+    const countdownNum = document.getElementById('countdownNum');
+
+    function setProgress(f) { countdownCircle.style.strokeDashoffset = CIRCUMFERENCE * f; }
+
+    function startSilenceCountdown(onDone) {
+      clearSilenceCountdown(); silenceLeft = 6;
+      countdownSvg.classList.add('visible'); setProgress(0);
+      countdownNum.textContent = `${silenceLeft} सेकंड…`;
+      silenceTimer = setInterval(() => {
+        silenceLeft--; setProgress(1 - silenceLeft / 6);
+        countdownNum.textContent = silenceLeft > 0 ? `${silenceLeft} सेकंड…` : '';
+        if (silenceLeft <= 0) { clearSilenceCountdown(); if (onDone) onDone(); }
+      }, 1000);
+    }
+
+    function clearSilenceCountdown() {
+      if (silenceTimer) { clearInterval(silenceTimer); silenceTimer = null; }
+      countdownSvg.classList.remove('visible'); countdownNum.textContent = ''; setProgress(0);
+    }
+
+    if (!SR) {
+      document.getElementById('unsupportedBanner').style.display = 'block';
+      micBtn.disabled = true;
+    } else {
+      recognition = new SR();
+      recognition.lang = 'hi-IN'; recognition.continuous = false; recognition.interimResults = true;
+
+      recognition.onresult = event => {
+        clearSilenceCountdown(); clearTimeout(askMoreTimer);
+        let interim = '', finalText = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const t = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalText += t; else interim += t;
+        }
+        transcriptEl.textContent = finalText || interim; transcriptEl.classList.remove('empty');
+        if (finalText) { if (listNameMode) handleListNameSpeech(finalText.trim()); else handleFinalSpeech(finalText.trim()); }
+      };
+      recognition.onend = () => setListeningState(false);
+      recognition.onerror = e => {
+        clearSilenceCountdown(); setListeningState(false); listNameMode = false;
+        document.getElementById('newListVoiceBtn').classList.remove('active');
+        if (e.error === 'no-speech') {
+          if (convState === STATES.CONFIRM_COPY) speak('हाँ या नहीं बोलें।', () => startListening());
+          else if (awaitingMore) speak('और कुछ? आप और कुछ ऐड करना चाहते हैं क्या?', () => { if (awaitingMore) startListening(); });
+        } else if (e.error === 'not-allowed') { showToast('⚠️ माइक की अनुमति दें'); awaitingMore = false; convState = STATES.IDLE; }
+      };
+    }
+
+    function setListeningState(on) {
+      isListening = on; micBtn.classList.toggle('listening', on); micBtn.textContent = on ? '🛑' : '🎤';
+      if (on) { statusLabel.textContent = '🔴 सुन रही हूँ…'; }
+      else {
+        document.getElementById('newListVoiceBtn').classList.remove('active');
+        if (!awaitingMore && convState === STATES.IDLE) statusLabel.textContent = 'बटन दबाएँ और बोलें';
+      }
+    }
+    function handleMicClick() {
+      if (!recognition) return;
+      if (isListening) { stopListening(); return; }
+      clearTimeout(askMoreTimer); awaitingMore = false; convState = STATES.IDLE; startListening();
+    }
+    function startListening() {
+      if (!recognition || isListening) return;
+      transcriptEl.textContent = 'आपकी आवाज़ यहाँ दिखेगी…'; transcriptEl.classList.add('empty');
+      try { recognition.start(); setListeningState(true); } catch (e) { }
+    }
+    function stopListening() {
+      clearSilenceCountdown(); clearTimeout(askMoreTimer); awaitingMore = false; listNameMode = false;
+      if (recognition && isListening) recognition.stop();
+    }
+
+    /* ══════════════════════════════════════════════════════
+       HANDLE FINAL SPEECH
+    ══════════════════════════════════════════════════════ */
+    async function handleFinalSpeech(text) {
+      clearSilenceCountdown(); clearTimeout(askMoreTimer);
+      statusLabel.textContent = 'समझ रही हूँ…';
+
+      // Confirm copy flow
+      if (convState === STATES.CONFIRM_COPY) {
+        if (isYesCommand(text)) { await handleConfirmCopy(true); return; }
+        if (isStopCommand(text) || text.includes('नहीं')) { await handleConfirmCopy(false); return; }
+        speak('माफ़ करें, हाँ या नहीं बोलें।', () => startListening()); return;
+      }
+
+      // Stop commands
+      if (isStopCommand(text)) {
+        if (activeListId && activeItems.length === 0 && !emptyListWarned) {
+          emptyListWarned = true;
+          statusLabel.textContent = 'लिस्ट खाली है ⚠️';
+          speak('आपकी लिस्ट खाली है। क्या आप कोई चीज़ ऐड करना चाहते हैं?', () => setTimeout(() => startListening(), 500));
+          return;
+        }
+        emptyListWarned = false;
+        awaitingMore = false; convState = STATES.IDLE;
+        statusLabel.textContent = 'लिस्ट सेव हो गई ✅';
+        speak('ठीक है, लिस्ट सेव हो गई।');
+        showToast('✅ लिस्ट सेव हो गई!'); return;
+      }
+
+      // Voice commands (list create/open/copy/clear)
+      const cmd = detectVoiceCommand(text);
+      if (cmd) {
+        awaitingMore = false;
+        switch (cmd.type) {
+          case 'CREATE_LIST': await handleCreateList(cmd.name); return;
+          case 'OPEN_LIST': await handleOpenList(cmd.keyword); return;
+          case 'COPY_PREV': await handleCopyPrev(); return;
+          case 'CLEAR_LIST': await confirmClearList(); return;
+        }
+      }
+
+      // Must have an active list
+      if (!activeListId) {
+        speak('पहले एक लिस्ट बनाएं। बोलें: लिस्ट बनाओ।'); return;
+      }
+
+      // Parse grocery item
+      const parsed = parseSpokenText(text);
+      parsed.listName = allLists.find(l => l.id === activeListId)?.list_name || null;
+      if (!parsed.item || parsed.item.length < 1 || isNonGrocery(text, parsed.item)) {
+        speak('क्या आप मुझसे कुछ कहना चाहते हैं? कृपया करके दोबारा दोहराएं, मैं आपकी बात को समझ नहीं पायी।', () => setTimeout(() => startListening(), 500));
+        return;
+      }
+
+      // Add item
+      showLoading(true);
+      const newItem = await dbAddItem(activeListId, parsed);
+      showLoading(false);
+      if (newItem) {
+        emptyListWarned = false;
+        activeItems.push(newItem); renderList();
+        statusLabel.textContent = `"${parsed.item}" जोड़ा गया ✅`;
+        showToast(`✅ "${parsed.item}" जोड़ा गया`);
+        speak('ठीक है, लिस्ट में जोड़ दिया।', () => {
+          awaitingMore = true;
+          askMoreTimer = setTimeout(() => {
+            speak('और कुछ? आप और कुछ ऐड करना चाहते हैं क्या?', () => {
+              if (awaitingMore) startListening();
+            });
+          }, 6000);
+        });
+      }
+    }
+
+    // New list via voice
+    function listenForListName() {
+      if (!recognition) { showToast('⚠️ आवाज़ सपोर्ट नहीं'); return; }
+      document.getElementById('newListVoiceBtn').classList.add('active');
+      listNameMode = true;
+      try { recognition.start(); setListeningState(true); } catch (e) { }
+    }
+    function handleListNameSpeech(text) {
+      listNameMode = false;
+      document.getElementById('newListVoiceBtn').classList.remove('active');
+      document.getElementById('newListInput').value = text;
+      setListeningState(false);
+      showToast(`🎙️ "${text}" — "लिस्ट बनाएं" दबाएं`);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       TTS
+    ══════════════════════════════════════════════════════ */
+    function speak(text, callback) {
+      if (!window.speechSynthesis) { if (callback) callback(); return; }
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'hi-IN'; utt.rate = 0.88; utt.pitch = 1.0; utt.volume = 1.0;
+      const hv = window.speechSynthesis.getVoices().find(v => v.lang === 'hi-IN' || v.lang.startsWith('hi'));
+      if (hv) utt.voice = hv;
+      utt.onend = () => { if (callback) callback(); };
+      utt.onerror = () => { if (callback) callback(); };
+      window.speechSynthesis.speak(utt);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       LIST MANAGER UI
+    ══════════════════════════════════════════════════════ */
+    async function setActiveList(id) {
+      activeListId = id;
+      activeItems = id ? await dbFetchItems(id) : [];
+    }
+
+    function refreshListSelector() {
+      const sel = document.getElementById('listSelect');
+      sel.innerHTML = '';
+      if (!allLists.length) { sel.innerHTML = '<option value="">— कोई लिस्ट नहीं —</option>'; return; }
+      allLists.forEach(l => {
+        const o = document.createElement('option');
+        o.value = l.id; o.textContent = l.list_name; if (l.id === activeListId) o.selected = true;
+        sel.appendChild(o);
+      });
+      const active = allLists.find(l => l.id === activeListId);
+      if (active) { document.getElementById('activeListTitle').textContent = `📋 ${active.list_name}`; updateListStats(); }
+    }
+
+    function updateListStats() {
+      const total = activeItems.length, done = activeItems.filter(i => i.checked).length;
+      const active = allLists.find(l => l.id === activeListId);
+      const ts = active?.created_at;
+      const date = ts ? new Date(typeof ts === 'number' ? ts : ts).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+      document.getElementById('listStats').innerHTML =
+        `<span class="stat-chip">📦 कुल: ${total}</span>` +
+        `<span class="stat-chip done">✅ हो गया: ${done}</span>` +
+        `<span class="stat-chip">⬜ बाकी: ${total - done}</span>` +
+        `<span class="stat-chip">📅 ${date}</span>`;
+    }
+
+    async function onListSelectChange(id) {
+      showLoading(true); await setActiveList(id); showLoading(false);
+      refreshListSelector(); renderList();
+    }
+
+    function toggleNewListPanel() {
+      const p = document.getElementById('newListPanel'), v = p.style.display === 'block';
+      p.style.display = v ? 'none' : 'block';
+      if (!v) document.getElementById('newListInput').focus();
+    }
+
+    async function uiCreateList() {
+      const name = document.getElementById('newListInput').value.trim();
+      if (!name) { showToast('⚠️ नाम लिखें'); return; }
+      await handleCreateList(name);
+      document.getElementById('newListInput').value = '';
+      document.getElementById('newListPanel').style.display = 'none';
+    }
+
+    async function uiDeleteList() {
+      const active = allLists.find(l => l.id === activeListId);
+      if (!active) return;
+      if (!confirm(`"${active.list_name}" हटाएं?`)) return;
+      showLoading(true);
+      await dbDeleteList(activeListId);
+      allLists = await dbFetchLists();
+      const next = allLists[0] || null;
+      await setActiveList(next?.id || null);
+      showLoading(false); refreshListSelector(); renderList();
+      showToast('🗑️ लिस्ट हटाई गई');
+    }
+
+    /* ══════════════════════════════════════════════════════
+       RENDER LIST — table with 4 columns + checkbox + delete
+    ══════════════════════════════════════════════════════ */
+    function renderList() {
+      const container = document.getElementById('listContainer');
+      if (!activeListId || !activeItems.length) {
+        container.innerHTML = `<div class="empty-state"><div class="big">🛒</div>अभी लिस्ट खाली है।<br/>🎤 बोलें: "चावल दो किलो"</div>`;
+        updateListStats(); return;
+      }
+      const total = activeItems.length, done = activeItems.filter(i => i.checked).length, pct = Math.round((done / total) * 100);
+      const rows = activeItems.map(it => {
+        const d = it.created_at ? new Date(it.created_at) : new Date();
+        const dateStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        return `<tr class="${it.checked ? 'checked-row' : ''}">
+          <td><button class="check-btn ${it.checked ? 'done' : ''}" onclick="onToggle('${it.id}',${!it.checked})">${it.checked ? '✓' : ''}</button></td>
+          <td class="item-name">${esc(it.item_name)}</td>
+          <td class="qty-col">${esc(it.quantity || '-')}</td>
+          <td class="brand-col">${esc(it.brand || '-')}</td>
+          <td class="date-col">${dateStr}</td>
+          <td><button class="del-btn" onclick="onDelete('${it.id}')" title="हटाएं">🗑️</button></td>
+        </tr>`;
+      }).join('');
+      container.innerHTML =
+        `<div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+         <div class="progress-label">${done}/${total} पूरा (${pct}%)</div>
+         <div class="table-wrap">
+           <table>
+             <thead><tr><th>✓</th><th>सामान</th><th>मात्रा</th><th>ब्रांड</th><th>तारीख</th><th></th></tr></thead>
+             <tbody>${rows}</tbody>
+           </table>
+         </div>`;
+      updateListStats();
+    }
+
+    function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+    async function onToggle(id, checked) {
+      await dbToggleItem(id, checked);
+      const it = activeItems.find(i => i.id === id); if (it) it.checked = checked;
+      renderList();
+    }
+    async function onDelete(id) {
+      await dbDeleteItem(id);
+      activeItems = activeItems.filter(i => i.id !== id);
+      renderList(); showToast('🗑️ हटाया गया');
+    }
+
+    /* ══════════════════════════════════════════════════════
+       HELPERS
+    ══════════════════════════════════════════════════════ */
+    function showLoading(on) { document.getElementById('loadingOverlay').style.display = on ? 'flex' : 'none'; }
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       AUTHENTICATION
+    ══════════════════════════════════════════════════════ */
+    window.onGoogleLibraryLoad = function () {
+      try {
+        google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: false });
+        google.accounts.id.renderButton(document.getElementById('googleBtnContainer'),
+          { theme: 'outline', size: 'large', text: 'signin_with', shape: 'rectangular', width: 280, locale: 'hi' });
+        google.accounts.id.prompt();
+      } catch (e) { showFallbackBtn(); }
+    };
+
+    function parseJwt(token) {
+      try { const b = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); return JSON.parse(decodeURIComponent(atob(b).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))); }
+      catch (e) { return null; }
+    }
+
+    async function handleCredentialResponse(response) {
+      const payload = parseJwt(response.credential);
+      if (!payload) { showToast('⚠️ लॉगिन विफल'); return; }
+      currentUser = { name: payload.name || 'उपयोगकर्ता', avatar: payload.picture || null, email: payload.email, sub: payload.sub };
+      isGuestMode = false;
+      localStorage.setItem(LS_USER, JSON.stringify({ ...currentUser, isGuest: false }));
+      await initApp();
+    }
+
+    function showFallbackBtn() {
+      document.getElementById('googleBtnContainer').style.display = 'none';
+      document.getElementById('fallbackGoogleBtn').style.display = 'flex';
+    }
+    async function fallbackLogin() {
+      currentUser = { name: 'डेमो उपयोगकर्ता', avatar: null, email: 'demo@gmail.com', sub: 'demo_001' };
+      isGuestMode = false;
+      localStorage.setItem(LS_USER, JSON.stringify({ ...currentUser, isGuest: false }));
+      await initApp();
+    }
+
+    function skipLogin() {
+      currentUser = { name: 'अतिथि', avatar: null, email: 'guest@local', sub: 'guest_local_001' };
+      isGuestMode = true;
+      localStorage.setItem(LS_USER, JSON.stringify({ ...currentUser, isGuest: true }));
+      initApp();
+    }
+
+    function showLoginScreen() {
+      document.getElementById('appScreen').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+    }
+
+    function logout() {
+      stopListening(); window.speechSynthesis && window.speechSynthesis.cancel();
+      try { google.accounts.id.disableAutoSelect(); } catch (e) { }
+      localStorage.removeItem(LS_USER);
+      currentUser = null; activeListId = null; allLists = []; activeItems = []; isGuestMode = false;
+      document.getElementById('appScreen').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+    }
+
+    /* ══════════════════════════════════════════════════════
+       APP INIT
+    ══════════════════════════════════════════════════════ */
+    async function initApp() {
+      showLoading(true);
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appScreen').style.display = 'flex';
+
+      // Avatar + greeting
+      const av = document.getElementById('userAvatar');
+      if (currentUser.avatar) av.innerHTML = `<img src="${currentUser.avatar}" onerror="this.parentElement.textContent='👤'"/>`;
+      else av.textContent = '👤';
+      document.getElementById('userGreeting').textContent = `नमस्ते, ${currentUser.name.split(' ')[0]} 👋`;
+      document.getElementById('guestNotice').style.display = isGuestMode ? 'block' : 'none';
+
+      // ── Supabase connectivity test ──
+      if (useSupabase()) {
+        console.log('[supabase] testing connection, user:', currentUser.sub, currentUser.email);
+        const { data: testData, error: testError } = await getSupabase()
+          .from('grocery_lists')
+          .select('id')
+          .limit(1);
+        if (testError) {
+          console.error('[supabase] SELECT test FAILED:', testError);
+          showToast('⚠️ Supabase error: ' + testError.message);
+        } else {
+          console.log('[supabase] SELECT test OK, rows:', testData);
+        }
+      }
+
+      // Load existing lists — do NOT auto-create, let user create via UI or voice
+      allLists = await dbFetchLists();
+      if (allLists.length > 0) {
+        await setActiveList(allLists[0].id);
+      }
+
+      showLoading(false); refreshListSelector(); renderList();
+
+      // Load voices then greet
+      if (window.speechSynthesis) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+      }
+      setTimeout(() => {
+        speak(isGuestMode
+          ? 'नमस्ते! अतिथि मोड में आपका स्वागत है। माइक बटन दबाएँ और सामान बोलें।'
+          : `नमस्ते ${currentUser.name.split(' ')[0]}! माइक बटन दबाएँ और सामान बोलें।`);
+      }, 600);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       PAGE LOAD — restore session
+    ══════════════════════════════════════════════════════ */
+    (async function () {
+      const saved = localStorage.getItem(LS_USER);
+      if (saved) {
+        try {
+          const u = JSON.parse(saved);
+          currentUser = { name: u.name, avatar: u.avatar, email: u.email, sub: u.sub };
+          isGuestMode = !!u.isGuest;
+          await initApp(); return;
+        } catch (e) { localStorage.removeItem(LS_USER); }
+      }
+      showLoading(false);
+      document.getElementById('loginScreen').style.display = 'flex';
+      setTimeout(() => { if (typeof google === 'undefined') showFallbackBtn(); }, 3000);
+    })();
+  </script>
+</body>
+
+</html>
