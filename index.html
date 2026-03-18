@@ -11,6 +11,7 @@
   <title>घर की किराना लिस्ट</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./AI%20Agents/prompts.js"></script>
   <style>
     :root {
       --g-dark: #1b5e20;
@@ -309,7 +310,7 @@
       flex-shrink: 0;
     }
 
-    #logoutBtn, #langToggleBtn {
+    #logoutBtn {
       padding: 8px 14px;
       background: rgba(255, 255, 255, 0.15);
       border: 1.5px solid rgba(255, 255, 255, 0.4);
@@ -323,7 +324,7 @@
       transition: background 0.2s;
     }
 
-    #logoutBtn:hover, #langToggleBtn:hover {
+    #logoutBtn:hover {
       background: rgba(255, 255, 255, 0.25);
     }
 
@@ -603,6 +604,30 @@
       transform-origin: center;
       transform: rotate(-90deg);
       transition: stroke-dashoffset 1s linear;
+    }
+
+    #parserBadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin: 4px auto 0;
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: opacity 0.4s;
+    }
+    #parserBadge.badge-ai {
+      background: #ede9fe;
+      color: #6d28d9;
+      border: 1.5px solid #c4b5fd;
+    }
+    #parserBadge.badge-local {
+      background: #dcfce7;
+      color: #15803d;
+      border: 1.5px solid #86efac;
     }
 
     #statusLabel {
@@ -978,6 +1003,7 @@
           </svg>
         </div>
         <div id="statusLabel">बटन दबाएँ और बोलें</div>
+        <div id="parserBadge" style="display:none"></div>
         <div id="countdownNum"></div>
         <div id="transcript" class="empty">आपकी आवाज़ यहाँ दिखेगी…</div>
       </div>
@@ -1005,6 +1031,7 @@
     const GOOGLE_CLIENT_ID = "197910257787-7as64e688d2a3bs689fs6uh8etn6tv99.apps.googleusercontent.com";
     const SUPABASE_URL = "https://dutjvxlpeilhnssbiwsd.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dGp2eGxwZWlsaG5zc2Jpd3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTIzODQsImV4cCI6MjA4OTEyODM4NH0.H8wMcOD-LzqTkGW55pO_5F8tDcHayUqjTrvYdbovCCU";
+    const OPENROUTER_API_KEY = "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";
 
     /* ══════════════════════════════════════════════════════
            HINDI WORD MAPS
@@ -1157,98 +1184,17 @@
         confirm_clear:       'सारा सामान हटाएं?',
         confirm_delete:      (n)    => `"${n}" हटाएं?`,
         loading_text:        'लोड हो रहा है…',
-        lang_btn:            '🌐 EN',
         // Voice command words
         stop_words:  ['बस', 'अभी नहीं', 'नहीं', 'रुको', 'बंद करो', 'नही', 'काफी है', 'ठीक है बस'],
         yes_words:   ['हाँ', 'हां', 'हा', 'जी हाँ', 'जी हां', 'बिल्कुल', 'ज़रूर', 'जरूर', 'हाँ जी'],
         hush_words:  ['चुप', 'चुप करो', 'चुप हो जाओ', 'शांत', 'रुक जाओ'],
       },
-      en: {
-        lang_code: 'en-IN',
-        // TTS
-        list_create_fail: 'Sorry, could not create the list.',
-        confirm_copy:        (n, p) => `Okay, "${n}" created. You had "${p}" before. Should I copy those items to this list?`,
-        list_created:        (n)    => `Okay, "${n}" list created. Now tell me what items to add.`,
-        list_not_found:      (k)    => `Sorry, no list found with "${k}".`,
-        list_opened:         (n)    => `Okay, opened "${n}".`,
-        select_list_first:   'Please select a list first.',
-        no_prev_list:        'No previous list found.',
-        items_copied:        'Okay, items from the previous list have been added.',
-        copy_done:           'Okay, I have added items from the previous list. Would you like to add more?',
-        new_list_start:      'Okay, starting fresh with the new list. Say an item to add.',
-        say_yes_no:          'Please say yes or no.',
-        ask_more:            'Anything else? Would you like to add more items?',
-        say_yes_no2:         'Sorry, please say yes or no.',
-        list_empty_warn:     'Your list is empty. Would you like to add something?',
-        list_saved:          'Okay, list saved.',
-        no_list_selected:    'Please create a list first. Press the mic button and say the list name.',
-        not_grocery:         'I can only understand grocery-related questions. Please add an item or view your list.',
-        item_added_tts:      'Okay, added to the list.',
-        new_list_instr:      'Now tap the small mic button below, say your list name, then click Create List.',
-        welcome_with_list:   (g, n) => `${g} Your "${n}" list is ready. Press the mic button to add items.`,
-        welcome_no_list:     (g)    => `${g} Tap the plus button at the top to get started.`,
-        greeting_prefix:     'Hello',
-        app_title:           'Grocery List',
-        guest_name:          'Guest',
-        // Status
-        listening:           '🔴 Listening…',
-        tap_to_speak:        'Press button and speak',
-        speak_now:           'Speak…',
-        processing:          'Processing…',
-        list_empty_status:   'List is empty ⚠️',
-        list_saved_status:   'List saved ✅',
-        item_added_status:   (i)    => `"${i}" added ✅`,
-        countdown:           (s)    => `${s} sec…`,
-        // Toasts
-        name_required:       '⚠️ Enter a name',
-        list_deleted:        '🗑️ List deleted',
-        item_deleted:        '🗑️ Deleted',
-        list_already_empty:  'List is already empty',
-        list_cleared:        '🗑️ List cleared',
-        mic_denied:          '⚠️ Allow microphone access',
-        voice_unsupported:   '⚠️ Voice not supported',
-        name_recorded:       (tx)   => `🎙️ "${tx}" — press "Create List"`,
-        // DOM labels
-        unsupported_banner:  '⚠️ Please open in Chrome (Android).',
-        guest_badge:         '👤 Guest mode — data saved on this device only',
-        login_link:          'Login →',
-        section_label:       '📂 Choose List',
-        new_list_label:      '✏️ Type or say a name',
-        input_placeholder:   'e.g.: March groceries',
-        create_list_btn:     '✅ Create List',
-        instruction:         '🎙️ Say items to add',
-        list_title_default:  '📋 Items',
-        clear_btn:           '🗑️ Clear',
-        delete_list_btn:     '❌ Delete List',
-        logout_btn:          '🚪 Logout',
-        transcript_ph:       'Your voice will appear here…',
-        empty_state:         'List is empty.<br/>🎤 Say: "Rice 2 kg"',
-        no_lists_option:     '— No lists —',
-        stat_total:          'Total',
-        stat_done:           'Done',
-        stat_remaining:      'Left',
-        progress_label:      (d, t, p) => `${d}/${t} done (${p}%)`,
-        th_item:             'Item',
-        th_qty:              'Qty',
-        th_brand:            'Brand',
-        th_date:             'Date',
-        confirm_clear:       'Remove all items?',
-        confirm_delete:      (n)    => `Delete "${n}"?`,
-        loading_text:        'Loading…',
-        lang_btn:            '🌐 हिं',
-        // Voice command words
-        stop_words:  ['stop', 'done', 'no', 'exit', 'quit', 'enough', 'finish', "that's all", 'thats all'],
-        yes_words:   ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'of course', 'go ahead'],
-        hush_words:  ['quiet', 'stop talking', 'silence', 'shut up', 'mute'],
-      }
     };
 
     function t(key, ...args) {
       const val = T[lang][key];
       return typeof val === 'function' ? val(...args) : (val ?? key);
     }
-
-    // Language is locked to Hindi; toggleLang() is disabled
 
     function applyLang() {
       document.getElementById('unsupportedBanner').textContent = t('unsupported_banner');
@@ -1354,18 +1300,12 @@
       return data;
     }
     async function sbAddItem(listId, parsed) {
-      console.log('[sbAddItem] listId:', listId, 'listName:', parsed.listName, 'parsed:', parsed);
       const { data, error } = await getSupabase()
         .from('grocery_items')
         .insert({ list_id: listId, list_name: parsed.listName || null, item_name: parsed.item, quantity: parsed.qty, brand: parsed.brand, checked: false })
         .select()
         .single();
-      if (error) {
-        console.error('[sbAddItem] FAILED:', error);
-        showToast('⚠️ Item error: ' + error.message);
-        return null;
-      }
-      console.log('[sbAddItem] SUCCESS:', data);
+      if (error) { console.error('[sbAddItem]', error); showToast('⚠️ Item error: ' + error.message); return null; }
       return data;
     }
     async function sbToggleItem(id, checked) {
@@ -1394,13 +1334,11 @@
     async function dbFetchLists() {
       if (!useSupabase()) return lsGetLists();
       const r = await sbFetchLists(currentUser.sub);
-      console.log('[db] fetchLists:', r);
       return r.length ? r : lsGetLists();
     }
     async function dbCreateList(name) {
       if (!useSupabase()) return lsCreateList(name);
       const r = await sbCreateList(currentUser.sub, name);
-      console.log('[db] createList:', r);
       if (!r) { showToast('⚠️ Supabase failed — saving locally'); return lsCreateList(name); }
       return r;
     }
@@ -1409,14 +1347,11 @@
     }
     async function dbFetchItems(id) {
       if (!useSupabase()) return lsGetItems(id);
-      const r = await sbFetchItems(id);
-      console.log('[db] fetchItems:', r);
-      return r;
+      return sbFetchItems(id);
     }
     async function dbAddItem(lid, parsed) {
       if (!useSupabase()) return lsAddItem(lid, parsed);
       const r = await sbAddItem(lid, parsed);
-      console.log('[db] addItem:', r);
       if (!r) { showToast('⚠️ Supabase failed — saving locally'); return lsAddItem(lid, parsed); }
       return r;
     }
@@ -1436,8 +1371,35 @@
     /* ══════════════════════════════════════════════════════
        NLP — ITEM PARSING
     ══════════════════════════════════════════════════════ */
+    // Connector / filler words that are never part of an item name
+    const FILLER_WORDS = ['एंड', 'और', 'भी', 'तो', 'फिर', 'अरे', 'अब', 'बस', 'साथ', 'वाला', 'वाली',
+      'please', 'add', 'also', 'and', 'then', 'plus'];
+
+    // Splits complex spoken text into multiple grocery items locally (no AI needed)
+    function splitLocalItems(rawText) {
+      // Step 1 — split on explicit connectors (और, एंड, and, commas)
+      const connectorRe = /[,،]|\s+(और|एंड|and|also|तथा|व)\s+/gi;
+      let segments = rawText.split(connectorRe)
+        .map(s => s.trim())
+        .filter(s => s.length > 1 && !/^(और|एंड|and|also|तथा|व)$/i.test(s));
+
+      if (segments.length > 1) {
+        // Multiple connector-separated segments — parse each
+        return segments.map(seg => parseSpokenText(seg)).filter(p => p.item && p.item.length > 0);
+      }
+
+      // Step 2 — no connectors: parse as single item
+      // (multi-word inputs without connectors are sent to AI by needsAIParser)
+      const parsed = parseSpokenText(rawText);
+      return [parsed];
+    }
+
     function parseSpokenText(rawText) {
       let text = rawText.trim(), brand = null, qty = null;
+
+      // Strip filler words — word-level filter (not regex \b which breaks on Hindi Unicode)
+      const fillerSet = new Set(FILLER_WORDS.map(w => w.toLowerCase()));
+      text = text.split(/\s+/).filter(w => !fillerSet.has(w.toLowerCase())).join(' ').trim();
 
       // Brand extraction
       for (const b of KNOWN_BRANDS) {
@@ -1475,8 +1437,10 @@
       return { item: item || rawText.trim(), qty: qty || '-', brand: brand || '-' };
     }
 
-    function isStopCommand(txt) { return T[lang].stop_words.some(s => txt === s || txt.startsWith(s + ' ')); }
-    function isYesCommand(txt) { return T[lang].yes_words.some(s => txt === s || txt.startsWith(s + ' ')); }
+    function matchesWords(txt, key) { return T[lang][key].some(s => txt === s || txt.startsWith(s + ' ')); }
+    function isStopCommand(txt) { return matchesWords(txt, 'stop_words'); }
+    function isYesCommand(txt)  { return matchesWords(txt, 'yes_words'); }
+    function getActiveListName() { return allLists.find(l => l.id === activeListId)?.list_name || null; }
 
     /* ══════════════════════════════════════════════════════
        VOICE COMMAND DETECTION
@@ -1666,6 +1630,130 @@
     }
 
     /* ══════════════════════════════════════════════════════
+       AI AGENT — OpenRouter free model auto-selector
+    ══════════════════════════════════════════════════════ */
+    let aiModel = null;        // set dynamically from OpenRouter
+    let aiFreeModels = [];     // all currently-available free models from API
+    let aiReady = false;
+
+    // AI_MASTER_PROMPT is loaded from ./AI Agents/prompts.js
+    // Fast small models first — for grocery NLP we need speed, not huge context
+    const AI_PREFERRED_FAST = [
+      "meta-llama/llama-3.2-3b-instruct:free",   // very fast, good multilingual
+      "qwen/qwen-2.5-7b-instruct:free",            // fast, excellent Hindi/Hinglish
+      "google/gemma-2-9b-it:free",                 // fast, good JSON output
+      "mistralai/mistral-7b-instruct:free",         // reliable fallback
+      "meta-llama/llama-3.1-8b-instruct:free",     // good multilingual
+      "qwen/qwen-2-7b-instruct:free",              // Qwen2 fallback
+    ];
+
+    async function aiInitModel() {
+      try {
+        const res = await fetch("https://openrouter.ai/api/v1/models", {
+          headers: { "Authorization": `Bearer ${OPENROUTER_API_KEY}` }
+        });
+        const data = await res.json();
+        const freeIds = new Set(
+          (data.data || [])
+            .filter(m => m.pricing?.prompt === "0" || m.id.endsWith(":free"))
+            .map(m => m.id)
+        );
+        // Sort: preferred fast models first (by priority list), then any remaining free models
+        const preferred = AI_PREFERRED_FAST.filter(id => freeIds.has(id));
+        const rest = [...freeIds].filter(id => !AI_PREFERRED_FAST.includes(id));
+        aiFreeModels = [...preferred, ...rest];
+        aiModel = aiFreeModels[0] || null;
+      } catch (e) {
+        aiFreeModels = [...AI_PREFERRED_FAST];
+        aiModel = aiFreeModels[0];
+      }
+      aiReady = true;
+    }
+
+    async function callAIAgent(userInput) {
+      if (!userInput?.trim()) return null;
+      if (!aiReady) {
+        await new Promise(resolve => {
+          const chk = setInterval(() => { if (aiReady) { clearInterval(chk); resolve(); } }, 100);
+          setTimeout(() => { clearInterval(chk); resolve(); }, 5000);
+        });
+      }
+
+      // Try each live free model in order — skip rate-limited (429) or missing (404)
+      if (!aiModel && aiFreeModels.length === 0) return null;
+      const modelsToTry = aiModel
+        ? [aiModel, ...aiFreeModels.filter(m => m !== aiModel)]
+        : aiFreeModels;
+
+      for (const model of modelsToTry) {
+        try {
+          const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": window.location.href,
+              "X-Title": "Kirana List AI Agent",
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: "system", content: AI_MASTER_PROMPT },
+                { role: "user",   content: userInput.trim() }
+              ],
+              temperature: 0.1,
+              max_tokens: 150,
+            })
+          });
+
+          if (res.status === 429) { continue; }
+          if (!res.ok) { continue; }
+
+          const data = await res.json();
+          const raw = (data.choices?.[0]?.message?.content || "").trim()
+            .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+          const parsed = JSON.parse(raw);
+          if (!parsed.intent || !Array.isArray(parsed.items)) continue;
+
+          if (model !== aiModel) aiModel = model;
+          return parsed;
+        } catch (e) { continue; }
+      }
+      return null;
+    }
+
+    function showParserBadge(type) {
+      const badge = document.getElementById('parserBadge');
+      badge.className = type === 'ai' ? 'badge-ai' : 'badge-local';
+      badge.textContent = type === 'ai' ? '🤖 AI Agent' : '⚡ Local Parser';
+      badge.style.display = 'inline-flex';
+      clearTimeout(badge._hide);
+      badge._hide = setTimeout(() => { badge.style.opacity = '0'; setTimeout(() => { badge.style.display = 'none'; badge.style.opacity = '1'; }, 400); }, 4000);
+    }
+
+    // Connector words that signal multiple items
+    const MULTI_CONNECTORS = ['और', 'एंड', 'aur', 'and', 'also', 'तथा', ',', '،'];
+
+    // Returns true only when AI is needed (complex / multi-item input)
+    // Simple single-item inputs are handled instantly by the local parser
+    function needsAIParser(text) {
+      const lower = text.toLowerCase();
+
+      // Has explicit connector → definitely multiple items
+      if (MULTI_CONNECTORS.some(c => lower.includes(c))) return true;
+
+      // Local parser already found a qty or brand → clean single item, no AI needed
+      const localParsed = parseSpokenText(text);
+      if (localParsed.qty !== '-' || localParsed.brand !== '-') return false;
+
+      // 3+ bare words with no qty/brand → likely multiple items, use AI
+      const words = text.trim().split(/\s+/).filter(w => w.length > 1);
+      if (words.length >= 3) return true;
+
+      return false; // 1-2 word simple item → local parser is enough
+    }
+
+    /* ══════════════════════════════════════════════════════
        HANDLE FINAL SPEECH
     ══════════════════════════════════════════════════════ */
     /* ── "चुप" COMMAND: immediately silence TTS and restart listening ── */
@@ -1720,32 +1808,99 @@
         speak(t('no_list_selected')); return;
       }
 
-      // Parse grocery item
-      const parsed = parseSpokenText(text);
-      parsed.listName = allLists.find(l => l.id === activeListId)?.list_name || null;
-      if (!parsed.item || parsed.item.length < 1 || isNonGrocery(text, parsed.item)) {
+      // ── Decide: local (instant) vs AI (complex sentences) ──
+      // Simple input = local parser handles it instantly (no network lag)
+      // Complex input = multiple items or Hinglish corrections → use AI
+      const needsAI = needsAIParser(text);
+      statusLabel.textContent = t('processing');
+      const aiResult = needsAI ? await callAIAgent(text) : null;
+
+      // Local parser path (simple input or AI unavailable)
+      if (!aiResult) {
+        showParserBadge('local');
+        const localItems = splitLocalItems(text);
+        if (localItems.length === 0 || isNonGrocery(text, localItems[0]?.item)) {
+          speak(t('not_grocery'), () => setTimeout(() => startListening(), 500));
+          return;
+        }
+        const curListName = getActiveListName();
+        localItems.forEach(p => { p.listName = curListName; });
+        addItemsToList(localItems);
+        return;
+      }
+
+      // IRRELEVANT_QUERY
+      if (aiResult.intent === 'IRRELEVANT_QUERY') {
         speak(t('not_grocery'), () => setTimeout(() => startListening(), 500));
         return;
       }
 
-      // Add item
-      showLoading(true);
-      const newItem = await dbAddItem(activeListId, parsed);
-      showLoading(false);
-      if (newItem) {
-        emptyListWarned = false;
-        activeItems.push(newItem); renderList();
-        statusLabel.textContent = t('item_added_status', parsed.item);
-        showToast('✅ ' + t('item_added_status', parsed.item));
-        speak(t('item_added_tts'), () => {
-          awaitingMore = true;
-          askMoreTimer = setTimeout(() => {
-            speak(t('ask_more'), () => {
-              if (awaitingMore) startListening();
-            });
-          }, 6000);
-        });
+      // UNCLEAR_INPUT
+      if (aiResult.intent === 'UNCLEAR_INPUT') {
+        speak('कृपया सामान धीरे-धीरे या एक-एक करके बोलें।', () => setTimeout(() => startListening(), 500));
+        return;
       }
+
+      // ADD_ITEMS — AI path
+      showParserBadge('ai');
+      if (!aiResult.items?.length) { speak(t('not_grocery'), () => setTimeout(() => startListening(), 500)); return; }
+
+      const curListName = getActiveListName();
+      const aiParsed = aiResult.items.map(aiItem => {
+        let parsed;
+        if (typeof aiItem === 'object' && aiItem.name) {
+          parsed = { item: aiItem.name || '', qty: aiItem.qty || '-', brand: aiItem.brand || '-' };
+        } else {
+          const s = String(aiItem);
+          parsed = aiResult.items.length === 1 ? { ...parseSpokenText(text), item: parseSpokenText(text).item || s } : { item: s, qty: '-', brand: '-' };
+        }
+        if (!parsed.item) return null;
+        parsed.qty   = parsed.qty   || '-';
+        parsed.brand = parsed.brand || '-';
+        parsed.listName = curListName;
+        return parsed;
+      }).filter(Boolean);
+
+      if (aiParsed.length) addItemsToList(aiParsed);
+    }
+
+    // Shared: optimistic UI + background DB save + TTS confirmation
+    function addItemsToList(parsedItems) {
+      const now = new Date().toISOString();
+      const temps = parsedItems.map((p, i) => ({
+        id: 'temp_' + Date.now() + '_' + i,
+        list_id: activeListId, item_name: p.item,
+        quantity: p.qty || '-', brand: p.brand || '-',
+        checked: false, created_at: now,
+      }));
+      activeItems.push(...temps);
+      renderList();
+
+      emptyListWarned = false;
+      const afterSpeak = () => {
+        awaitingMore = true;
+        askMoreTimer = setTimeout(() => { speak(t('ask_more'), () => { if (awaitingMore) startListening(); }); }, 6000);
+      };
+      if (parsedItems.length === 1) {
+        statusLabel.textContent = t('item_added_status', parsedItems[0].item);
+        showToast('✅ ' + t('item_added_status', parsedItems[0].item));
+        speak(t('item_added_tts'), afterSpeak);
+      } else {
+        statusLabel.textContent = `✅ ${parsedItems.length} items added`;
+        showToast(`✅ ${parsedItems.length} सामान जोड़े`);
+        speak(`ठीक है, ${parsedItems.length} सामान लिस्ट में जोड़ दिए।`, afterSpeak);
+      }
+
+      parsedItems.forEach((parsed, i) => {
+        dbAddItem(activeListId, parsed).then(newItem => {
+          const idx = activeItems.findIndex(x => x.id === temps[i].id);
+          if (idx !== -1) {
+            if (newItem) activeItems[idx] = newItem;
+            else activeItems.splice(idx, 1);
+            renderList();
+          }
+        });
+      });
     }
 
     // New list via voice
@@ -1977,6 +2132,7 @@
     ══════════════════════════════════════════════════════ */
     async function initApp() {
       showLoading(true);
+      aiInitModel(); // start AI model selection in background
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('appScreen').style.display = 'flex';
 
@@ -1987,20 +2143,6 @@
       document.getElementById('userGreeting').textContent = `${t('greeting_prefix')}, ${currentUser.name.split(' ')[0]} 👋`;
       document.getElementById('guestNotice').style.display = isGuestMode ? 'block' : 'none';
 
-      // ── Supabase connectivity test ──
-      if (useSupabase()) {
-        console.log('[supabase] testing connection, user:', currentUser.sub, currentUser.email);
-        const { data: testData, error: testError } = await getSupabase()
-          .from('grocery_lists')
-          .select('id')
-          .limit(1);
-        if (testError) {
-          console.error('[supabase] SELECT test FAILED:', testError);
-          showToast('⚠️ Supabase error: ' + testError.message);
-        } else {
-          console.log('[supabase] SELECT test OK, rows:', testData);
-        }
-      }
 
       // Load existing lists — do NOT auto-create, let user create via UI or voice
       allLists = await dbFetchLists();
