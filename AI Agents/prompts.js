@@ -55,6 +55,12 @@ Input: "amul doodh 2 litre aur 1 kilo chawal"
 Input: "aam do kilo besan paav bhar"
 → {"intent":"ADD_ITEMS","items":[{"name":"आम","qty":"2 किलो","brand":""},{"name":"बेसन","qty":"250 ग्राम","brand":""}],"message":""}
 
+Input: "3 kilo aata 4 kilo besan do ande"
+→ {"intent":"ADD_ITEMS","items":[{"name":"आटा","qty":"3 किलो","brand":""},{"name":"बेसन","qty":"4 किलो","brand":""},{"name":"अंडे","qty":"2","brand":""}],"message":""}
+
+Input: "3 किलो आटा 4 किलो बेसन दो अंडे"
+→ {"intent":"ADD_ITEMS","items":[{"name":"आटा","qty":"3 किलो","brand":""},{"name":"बेसन","qty":"4 किलो","brand":""},{"name":"अंडे","qty":"2","brand":""}],"message":""}
+
 Input: "list mein doodh aur bread aur 2 kilo aloo daal do"
 → {"intent":"ADD_ITEMS","items":[{"name":"दूध","qty":"","brand":""},{"name":"ब्रेड","qty":"","brand":""},{"name":"आलू","qty":"2 किलो","brand":""}],"message":""}
 

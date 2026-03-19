@@ -1742,9 +1742,16 @@
       // Has explicit connector → definitely multiple items
       if (MULTI_CONNECTORS.some(c => lower.includes(c))) return true;
 
-      // Local parser already found a qty or brand → clean single item, no AI needed
+      // Multiple numbers in input → multiple items, must use AI
+      // e.g. "3 किलो आटा 4 किलो बेसन दो अंडे" has 3 quantity markers
+      const numPattern = /\b(\d+|एक|दो|तीन|चार|पाँच|छह|सात|आठ|नौ|दस)\b/g;
+      const numMatches = text.match(numPattern) || [];
+      if (numMatches.length >= 2) return true;
+
+      // Local parser found a qty or brand and text is short → single clean item, no AI needed
       const localParsed = parseSpokenText(text);
-      if (localParsed.qty !== '-' || localParsed.brand !== '-') return false;
+      const wordCount = text.trim().split(/\s+/).filter(w => w.length > 1).length;
+      if ((localParsed.qty !== '-' || localParsed.brand !== '-') && wordCount <= 4) return false;
 
       // 3+ bare words with no qty/brand → likely multiple items, use AI
       const words = text.trim().split(/\s+/).filter(w => w.length > 1);
@@ -2159,12 +2166,20 @@
       }
       setTimeout(() => {
         const userName = (currentUser && currentUser.name) ? currentUser.name.split(' ')[0] : '';
-        const greeting = isGuestMode ? `${t('greeting_prefix')}!` : `${t('greeting_prefix')} ${userName}!`;
+        // hi-IN TTS engines fail silently when an English (Latin-script) name is
+        // embedded in a Hindi sentence. Use "नमस्ते!" alone for TTS; the full
+        // name is already shown visually in the header greeting.
+        const isLatinName = userName && /^[a-zA-Z\s]+$/.test(userName);
+        const ttsGreeting = isGuestMode
+          ? `${t('greeting_prefix')}!`
+          : isLatinName
+            ? `${t('greeting_prefix')}!`
+            : `${t('greeting_prefix')} ${userName}!`;
         let welcomeMsg;
         if (allLists.length > 0) {
-          welcomeMsg = t('welcome_with_list', greeting, allLists[0].list_name);
+          welcomeMsg = t('welcome_with_list', ttsGreeting, allLists[0].list_name);
         } else {
-          welcomeMsg = t('welcome_no_list', greeting);
+          welcomeMsg = t('welcome_no_list', ttsGreeting);
         }
         speak(welcomeMsg);
       }, 600);
