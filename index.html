@@ -148,7 +148,7 @@
 
     #googleBtnContainer {
       width: 100%;
-      display: none;
+      display: flex;
       justify-content: center;
       min-height: 44px;
     }
@@ -174,7 +174,7 @@
       border-color: #dadce0;
       color: #3c4043;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      display: flex;
+      display: none;
     }
 
     #fallbackGoogleBtn:hover {
@@ -2084,7 +2084,9 @@
         google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: false });
         google.accounts.id.renderButton(document.getElementById('googleBtnContainer'),
           { theme: 'outline', size: 'large', text: 'signin_with', shape: 'rectangular', width: 280, locale: 'hi' });
-        google.accounts.id.prompt();
+        // Google button loaded — hide fallback
+        document.getElementById('googleBtnContainer').style.display = 'flex';
+        document.getElementById('fallbackGoogleBtn').style.display = 'none';
       } catch (e) { showFallbackBtn(); }
     };
 
@@ -2105,6 +2107,10 @@
     function showFallbackBtn() {
       document.getElementById('googleBtnContainer').style.display = 'none';
       document.getElementById('fallbackGoogleBtn').style.display = 'flex';
+    }
+    function showGoogleBtn() {
+      document.getElementById('googleBtnContainer').style.display = 'flex';
+      document.getElementById('fallbackGoogleBtn').style.display = 'none';
     }
     async function fallbackLogin() {
       currentUser = { name: 'डेमो उपयोगकर्ता', avatar: null, email: 'demo@gmail.com', sub: 'demo_001' };
