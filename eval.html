@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Agent Eval Dashboard</title>
+<script src="./ai-agents/prompts.js"></script>
+<script src="./ai-agents/choose-model.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding: 24px 20px;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 4px;
+  }
+  .subtitle { font-size: 0.82rem; color: #64748b; margin-bottom: 24px; }
+
+  /* ── Model badge ── */
+  #modelBadge {
+    display: inline-block;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-bottom: 20px;
+  }
+  #modelBadge span { color: #38bdf8; font-weight: 600; }
+
+  /* ── Controls ── */
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+
+  button {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button:hover:not(:disabled) { opacity: .85; }
+
+  #btnRun10  { background: #3b82f6; color: #fff; }
+  #btnRun50  { background: #6366f1; color: #fff; }
+  #btnRunAll { background: #8b5cf6; color: #fff; }
+  #btnStop   { background: #ef4444; color: #fff; display: none; }
+  #btnExport { background: #10b981; color: #fff; display: none; }
+  #btnClear  { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+
+  /* ── Progress ── */
+  #progressWrap {
+    display: none;
+    margin-bottom: 20px;
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+  .progress-bar-bg {
+    background: #0f172a;
+    border-radius: 4px;
+    height: 8px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  #progressBar {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    border-radius: 4px;
+    width: 0%;
+    transition: width .2s;
+  }
+  #progressText { font-size: 0.82rem; color: #94a3b8; }
+
+  /* ── Summary cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .card-label { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+  .card-value { font-size: 1.6rem; font-weight: 700; }
+  .card-value.green  { color: #34d399; }
+  .card-value.yellow { color: #fbbf24; }
+  .card-value.red    { color: #f87171; }
+  .card-value.blue   { color: #60a5fa; }
+  .card-value.purple { color: #a78bfa; }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #334155;
+    font-size: 0.82rem;
+    color: #64748b;
+  }
+  .filter-btns { display: flex; gap: 6px; }
+  .filter-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    background: transparent;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .filter-btn.active { background: #334155; color: #e2e8f0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #64748b;
+    border-bottom: 1px solid #334155;
+    white-space: nowrap;
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid #1a2332; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #243044; }
+
+  .col-id    { width: 42px; color: #64748b; }
+  .col-input { max-width: 180px; word-break: break-word; color: #cbd5e1; }
+  .col-expected, .col-actual { max-width: 200px; }
+
+  .item-chip {
+    display: inline-block;
+    background: #0f1724;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.76rem;
+    margin: 2px 2px 2px 0;
+    color: #94a3b8;
+  }
+  .item-chip .brand { color: #f59e0b; font-size: 0.7rem; margin-left: 4px; }
+  .item-chip .qty   { color: #34d399; font-size: 0.7rem; margin-left: 4px; }
+
+  .score-pill {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .score-pass { background: #064e3b; color: #34d399; }
+  .score-warn { background: #451a03; color: #fbbf24; }
+  .score-fail { background: #450a0a; color: #f87171; }
+
+  .badge-pass { font-size: 0.7rem; color: #34d399; }
+  .badge-fail { font-size: 0.7rem; color: #f87171; }
+
+  .latency { font-size: 0.72rem; color: #475569; }
+
+  #emptyState {
+    text-align: center;
+    padding: 48px 20px;
+    color: #475569;
+    font-size: 0.9rem;
+  }
+  #emptyState .big { font-size: 2rem; margin-bottom: 8px; }
+
+  .spinner {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid #334155;
+    border-top-color: #60a5fa;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<h1>AI Agent Eval Dashboard</h1>
+<p class="subtitle">LLM Judge v3 — किराना लिस्ट AI accuracy test</p>
+
+<div id="modelBadge">Model: <span id="modelName">loading…</span></div>
+
+<div class="controls">
+  <button id="btnRun10">▶ Run 10</button>
+  <button id="btnRun50">▶ Run 50</button>
+  <button id="btnRunAll">▶ Run All (150)</button>
+  <button id="btnStop">■ Stop</button>
+  <button id="btnExport">↓ Export JSON</button>
+  <button id="btnClear">✕ Clear</button>
+</div>
+
+<div id="progressWrap">
+  <div id="progressText">Starting…</div>
+  <div class="progress-bar-bg"><div id="progressBar"></div></div>
+</div>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-label">Tests Run</div>
+    <div class="card-value blue" id="cTotal">0</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Avg Score</div>
+    <div class="card-value green" id="cAvgScore">—</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Item Accuracy</div>
+    <div class="card-value purple" id="cItemAcc">—</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Qty Accuracy</div>
+    <div class="card-value yellow" id="cQtyAcc">—</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Pass (≥0.8)</div>
+    <div class="card-value green" id="cPass">0</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Avg Latency</div>
+    <div class="card-value blue" id="cLatency">—</div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <div class="table-header">
+    <span id="tableCount">0 results</span>
+    <div class="filter-btns">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="pass">Pass</button>
+      <button class="filter-btn" data-filter="warn">Warn</button>
+      <button class="filter-btn" data-filter="fail">Fail</button>
+    </div>
+  </div>
+  <div id="tableBody">
+    <div id="emptyState">
+      <div class="big">🧪</div>
+      Run tests to see results
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+let testCases = [];
+let results = [];
+let stopped = false;
+let activeFilter = 'all';
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+async function init() {
+  document.getElementById('modelName').textContent =
+    currentEvalModel().split('/').pop().replace(':free', '');
+
+  // Load test cases
+  try {
+    const res = await fetch('./data/synthetic_data.json');
+    testCases = await res.json();
+    document.querySelector('.subtitle').textContent =
+      `LLM Judge v3 — ${testCases.length} test cases loaded`;
+  } catch (e) {
+    alert('Could not load data/synthetic_data.json: ' + e.message);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  JUDGE LOGIC  (implements llm_judge.md v3)
+// ═══════════════════════════════════════════════════
+
+// Item synonym groups — any two names in the same group are treated as equal
+const ITEM_SYNONYMS = [
+  ['तेल', 'ऑयल', 'oil'],
+  ['अंडा', 'अंडे', 'anda', 'egg', 'eggs'],
+  ['दूध', 'milk', 'doodh', 'dudh'],
+  ['चीनी', 'sugar', 'shakkar', 'शक्कर'],
+  ['नमक', 'salt'],
+  ['मैदा', 'maida'],
+  ['सूजी', 'रवा', 'rava', 'suji'],
+  ['धनिया', 'coriander', 'dhaniya'],
+  ['हल्दी', 'turmeric', 'haldi'],
+  ['मिर्च', 'chilli', 'mirch', 'मिर्ची'],
+];
+
+function getSynonymGroup(name) {
+  const n = normalizeText(name).replace(/\s/g, '');
+  return ITEM_SYNONYMS.find(g => g.some(s => s.replace(/\s/g,'') === n)) || null;
+}
+
+function itemsMatch(a, b) {
+  const na = normalizeText(a), nb = normalizeText(b);
+  if (na === nb) return true;
+  // Check synonym groups
+  const ga = getSynonymGroup(a), gb = getSynonymGroup(b);
+  if (ga && gb && ga === gb) return true;
+  if (ga && gb) {
+    // same synonym group even if different array refs
+    const na2 = na.replace(/\s/g,''), nb2 = nb.replace(/\s/g,'');
+    return ga.some(s => s.replace(/\s/g,'') === nb2) || gb.some(s => s.replace(/\s/g,'') === na2);
+  }
+  return false;
+}
+
+function normalizeText(s) {
+  if (!s) return '';
+  return s.trim().normalize('NFC').toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+function normalizeQty(q) {
+  if (!q) return '';
+  return normalizeText(q)
+    .replace(/किलोग्राम|kilogram|kg\b/g, 'किलो')
+    .replace(/\bgram\b|ग्राम/g, 'ग्राम')
+    .replace(/\bliter\b|\blitre\b|लीटर/g, 'लीटर')
+    .replace(/\bpacket\b|पैकेट/g, 'पैकेट');
+}
+
+// Brand fuzzy match — phonetic/minor-spelling tolerant
+const BRAND_ALIASES = {
+  'amul':       ['amool', 'अमूल', 'amul'],
+  'patanjali':  ['patanjali', 'पतंजलि', 'patanjale'],
+  'maggi':      ['maggie', 'मैगी', 'magi'],
+  'tata':       ['tata', 'टाटा'],
+  'pears':      ['pearts', 'piyars', 'पियर्स', 'peer'],
+  'slurrpfarm': ['slurpfarm', 'slurrp', 'slurp farm', 'slurrp farm'],
+  'dove':       ['डव', 'dov'],
+  'lifebuoy':   ['लाइफबॉय', 'lifeboi', 'lifebouy'],
+  'dettol':     ['डेटॉल', 'detol', 'dettoll'],
+  'colgate':    ['कोलगेट', 'colgat'],
+  'motherdairy':['mother dairy', 'मदर डेयरी'],
+};
+
+function fuzzyBrandMatch(a, b) {
+  if (!a || !b) return false;
+  const na = normalizeText(a).replace(/\s/g, '');
+  const nb = normalizeText(b).replace(/\s/g, '');
+  if (na === nb) return true;
+  if (na.includes(nb) || nb.includes(na)) return true;
+  // alias table
+  for (const [, aliases] of Object.entries(BRAND_ALIASES)) {
+    const clean = aliases.map(v => v.toLowerCase().replace(/\s/g, ''));
+    if (clean.some(v => na.includes(v)) && clean.some(v => nb.includes(v))) return true;
+  }
+  return false;
+}
+
+function isBrandMinorVariant(a, b) {
+  // e.g. Amul vs Amool — levenshtein ≤ 2
+  if (!a || !b) return false;
+  const na = normalizeText(a), nb = normalizeText(b);
+  return levenshtein(na, nb) <= 2;
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  const dp = Array.from({length: m+1}, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[m][n];
+}
+
+function judgeResult(expectedOutput, modelItems) {
+  let score = 1.0;
+  const missing = [], incorrect = [];
+  let itemMatched = 0, qtyCorrect = 0, qtyTotal = 0;
+
+  // For each expected item, find match in model output
+  for (const exp of expectedOutput) {
+    const match = modelItems.find(m => itemsMatch(m.name, exp.item));
+
+    if (!match) {
+      missing.push(exp.item);
+      score -= 0.3;
+    } else {
+      itemMatched++;
+      // Quantity
+      if (exp.quantity) {
+        qtyTotal++;
+        if (!match.qty || match.qty.trim() === '' || match.qty === '-') {
+          score -= 0.2;
+        } else if (normalizeQty(match.qty) !== normalizeQty(exp.quantity)) {
+          score -= 0.1;
+          qtyCorrect += 0.5;
+        } else {
+          qtyCorrect++;
+        }
+      }
+      // Brand (only if expected brand is NOT null)
+      if (exp.brand !== null) {
+        const modelBrand = match.brand && match.brand !== '-' ? match.brand : null;
+        if (!modelBrand) {
+          score -= 0.05; // missing brand
+        } else if (fuzzyBrandMatch(modelBrand, exp.brand)) {
+          // exact / phonetically similar → no penalty
+        } else if (isBrandMinorVariant(modelBrand, exp.brand)) {
+          score -= 0.02; // minor spelling
+        } else {
+          score -= 0.1; // wrong brand
+        }
+      }
+    }
+  }
+
+  // Spurious items not in expected
+  for (const m of modelItems) {
+    const found = expectedOutput.find(e => itemsMatch(m.name, e.item));
+    if (!found) {
+      incorrect.push(m.name);
+      score -= 0.3;
+    }
+  }
+
+  const itemAccuracy = expectedOutput.length > 0 ? itemMatched / expectedOutput.length : 1;
+  const qtyAccuracy  = qtyTotal > 0 ? qtyCorrect / qtyTotal : 1;
+
+  return {
+    item_accuracy:    Math.max(0, Math.min(1, itemAccuracy)),
+    quantity_accuracy: Math.max(0, Math.min(1, qtyAccuracy)),
+    missing_items:    missing,
+    incorrect_items:  incorrect,
+    formatting_score: 1,
+    final_score:      Math.max(0, Math.min(1, score)),
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//  DIRECT API CALL — proxied via /api/ai
+//  API key lives in Vercel env, not client code.
+// ═══════════════════════════════════════════════════
+
+// Ordered fallback list — rotate on 429
+// Gemini Flash (PRIMARY) → Mistral Nemo (FALLBACK) → LLaMA 8B (FAST PATH) → DeepSeek (LAST RESORT)
+const EVAL_MODELS = [
+  "mistralai/mistral-nemo",            // PRIMARY
+  "google/gemini-2.0-flash-exp",       // SECONDARY
+  "meta-llama/llama-3.1-8b-instruct",  // LAST
+];
+let evalModelIdx = 0;
+
+function currentEvalModel() {
+  return EVAL_MODELS[evalModelIdx % EVAL_MODELS.length];
+}
+
+async function callModelDirect(input) {
+  // Try each model; rotate on 429, give up after full rotation
+  for (let attempt = 0; attempt < EVAL_MODELS.length; attempt++) {
+    const model = currentEvalModel();
+    const res = await fetch("/api/ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: AI_MASTER_PROMPT },
+          { role: "user",   content: input.trim() },
+        ],
+        temperature: 0.1,
+        max_tokens: 300,
+      }),
+    });
+
+    if (res.status === 429 || res.status === 404) {
+      console.warn(`[Eval] ${model} returned ${res.status}, trying next model`);
+      evalModelIdx++;
+      document.getElementById('modelName').textContent =
+        currentEvalModel().split('/').pop().replace(':free', '');
+      await new Promise(r => setTimeout(r, 600));
+      continue;
+    }
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`HTTP ${res.status}: ${err.slice(0, 120)}`);
+    }
+
+    const data = await res.json();
+    const raw = data.choices?.[0]?.message?.content?.trim() || '';
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (!Array.isArray(parsed.items)) throw new Error('No items array in response');
+    return parsed;
+  }
+  throw new Error('All models rate-limited. Wait a moment and retry.');
+}
+
+// ═══════════════════════════════════════════════════
+//  RUN ENGINE
+// ═══════════════════════════════════════════════════
+async function runTests(cases) {
+  stopped = false;
+  toggleRunButtons(false);
+  document.getElementById('progressWrap').style.display = 'block';
+  document.getElementById('btnStop').style.display = 'inline-block';
+
+  const queue = [...cases];
+  const total = queue.length;
+  let done = 0;
+
+  // Sequential with 400ms gap — free tier rate limit
+  for (const tc of queue) {
+    if (stopped) break;
+    const t0 = Date.now();
+
+    let modelItems = [];
+    let errorMsg = null;
+    const modelName = currentEvalModel();
+
+    try {
+      const aiResult = await callModelDirect(tc.input_text);
+      modelItems = (aiResult?.items || []).filter(i => i.name && i.name !== '-');
+    } catch (e) {
+      errorMsg = e.message;
+      console.error(`[Eval #${tc.id}]`, e.message);
+    }
+
+    const latency = Date.now() - t0;
+    const evaluation = judgeResult(tc.expected_output, modelItems);
+
+    const row = {
+      id: tc.id,
+      input_text: tc.input_text,
+      expected_output: tc.expected_output,
+      model_output: modelItems,
+      model_name: modelName,
+      error: errorMsg,
+      judge_output: {
+        input_text: tc.input_text,
+        model_name: modelName,
+        evaluation,
+        metadata: {
+          evaluated_at: new Date().toISOString(),
+          evaluation_type: 'llm_judge_v3',
+        }
+      },
+      latency_ms: latency,
+      source: 'synthetic',
+    };
+
+    results.push(row);
+    done++;
+    updateProgress(done, total);
+    updateCards();
+    renderRow(row);
+
+    // Rate-limit: 400ms between calls (free tier ~2 req/s)
+    if (!stopped) await new Promise(r => setTimeout(r, 400));
+  }
+
+  // Done
+  document.getElementById('progressText').textContent =
+    stopped ? `Stopped at ${done}/${total}` : `✓ Complete — ${done} tests run`;
+  document.getElementById('progressBar').style.width = '100%';
+  document.getElementById('btnStop').style.display = 'none';
+  document.getElementById('btnExport').style.display = 'inline-block';
+  toggleRunButtons(true);
+}
+
+function updateProgress(done, total) {
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressText').textContent =
+    `Running… ${done} / ${total} (${pct}%)`;
+}
+
+function toggleRunButtons(on) {
+  ['btnRun10','btnRun50','btnRunAll','btnClear'].forEach(id => {
+    document.getElementById(id).disabled = !on;
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  CARDS / METRICS
+// ═══════════════════════════════════════════════════
+function updateCards() {
+  if (!results.length) return;
+  const scores = results.map(r => r.judge_output.evaluation.final_score);
+  const avgScore = scores.reduce((a,b) => a+b, 0) / scores.length;
+  const itemAccs = results.map(r => r.judge_output.evaluation.item_accuracy);
+  const avgItem  = itemAccs.reduce((a,b) => a+b, 0) / itemAccs.length;
+  const qtyAccs  = results.map(r => r.judge_output.evaluation.quantity_accuracy);
+  const avgQty   = qtyAccs.reduce((a,b) => a+b, 0) / qtyAccs.length;
+  const passes   = scores.filter(s => s >= 0.8).length;
+  const latencies = results.map(r => r.latency_ms);
+  const avgLat   = latencies.reduce((a,b) => a+b, 0) / latencies.length;
+
+  set('cTotal',    results.length);
+  set('cAvgScore', pct(avgScore));
+  set('cItemAcc',  pct(avgItem));
+  set('cQtyAcc',   pct(avgQty));
+  set('cPass',     passes);
+  set('cLatency',  Math.round(avgLat) + 'ms');
+
+  // Color avgScore card
+  const el = document.getElementById('cAvgScore');
+  el.className = 'card-value ' + (avgScore >= 0.8 ? 'green' : avgScore >= 0.5 ? 'yellow' : 'red');
+
+  document.getElementById('tableCount').textContent =
+    `${visibleCount()} results`;
+}
+
+function pct(v) { return (v * 100).toFixed(1) + '%'; }
+function set(id, v) { document.getElementById(id).textContent = v; }
+
+// ═══════════════════════════════════════════════════
+//  TABLE RENDERING
+// ═══════════════════════════════════════════════════
+function ensureTable() {
+  const body = document.getElementById('tableBody');
+  if (body.querySelector('table')) return body.querySelector('tbody');
+  body.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th class="col-id">#</th>
+          <th>Input</th>
+          <th>Expected</th>
+          <th>Model Output</th>
+          <th>Score</th>
+          <th>Latency</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>`;
+  return document.getElementById('tbody');
+}
+
+function itemsToChips(items, isModel) {
+  if (!items || items.length === 0)
+    return '<span style="color:#475569;font-size:.75rem">—</span>';
+  return items.map(item => {
+    const name  = isModel ? item.name  : item.item;
+    const qty   = isModel ? item.qty   : item.quantity;
+    const brand = isModel ? item.brand : item.brand;
+    const qtyHtml   = qty   && qty !== '-'   ? `<span class="qty">${qty}</span>` : '';
+    const brandHtml = brand && brand !== '-' ? `<span class="brand">${brand}</span>` : '';
+    return `<span class="item-chip">${name}${qtyHtml}${brandHtml}</span>`;
+  }).join('');
+}
+
+function scoreClass(s) {
+  if (s >= 0.8) return 'score-pass';
+  if (s >= 0.5) return 'score-warn';
+  return 'score-fail';
+}
+
+function renderRow(row) {
+  const tbody = ensureTable();
+  const ev = row.judge_output.evaluation;
+  const score = ev.final_score;
+  const cls = scoreClass(score);
+
+  const missHtml = ev.missing_items.length
+    ? `<div class="badge-fail" style="margin-top:4px">✗ missing: ${ev.missing_items.join(', ')}</div>` : '';
+  const wrongHtml = ev.incorrect_items.length
+    ? `<div class="badge-fail" style="margin-top:2px">+ extra: ${ev.incorrect_items.join(', ')}</div>` : '';
+  const errHtml = row.error
+    ? `<div style="margin-top:4px;font-size:.7rem;color:#f87171;word-break:break-all">⚠ ${row.error}</div>` : '';
+
+  const tr = document.createElement('tr');
+  tr.dataset.status = score >= 0.8 ? 'pass' : score >= 0.5 ? 'warn' : 'fail';
+  tr.innerHTML = `
+    <td class="col-id">${row.id}</td>
+    <td class="col-input">${row.input_text}</td>
+    <td class="col-expected">${itemsToChips(row.expected_output, false)}</td>
+    <td class="col-actual">${itemsToChips(row.model_output, true)}${errHtml}${missHtml}${wrongHtml}</td>
+    <td><span class="score-pill ${cls}">${(score * 100).toFixed(0)}%</span></td>
+    <td class="latency">${row.latency_ms}ms</td>`;
+  tbody.appendChild(tr);
+  applyFilter();
+}
+
+// ═══════════════════════════════════════════════════
+//  FILTER
+// ═══════════════════════════════════════════════════
+function applyFilter() {
+  const tbody = document.getElementById('tbody');
+  if (!tbody) return;
+  let count = 0;
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const show = activeFilter === 'all' || tr.dataset.status === activeFilter;
+    tr.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+  document.getElementById('tableCount').textContent = `${count} results`;
+}
+
+function visibleCount() {
+  const tbody = document.getElementById('tbody');
+  if (!tbody) return 0;
+  return [...tbody.querySelectorAll('tr')].filter(tr => tr.style.display !== 'none').length;
+}
+
+// ═══════════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════════
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(results, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `eval_results_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════
+//  CLEAR
+// ═══════════════════════════════════════════════════
+function clearResults() {
+  results = [];
+  document.getElementById('tableBody').innerHTML =
+    `<div id="emptyState"><div class="big">🧪</div>Run tests to see results</div>`;
+  ['cTotal','cAvgScore','cItemAcc','cQtyAcc','cPass','cLatency']
+    .forEach(id => document.getElementById(id).textContent =
+      id === 'cTotal' || id === 'cPass' ? '0' : '—');
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('btnExport').style.display = 'none';
+  document.getElementById('tableCount').textContent = '0 results';
+}
+
+// ═══════════════════════════════════════════════════
+//  EVENT LISTENERS
+// ═══════════════════════════════════════════════════
+document.getElementById('btnRun10').addEventListener('click',  () => runTests(testCases.slice(0, 10)));
+document.getElementById('btnRun50').addEventListener('click',  () => runTests(testCases.slice(0, 50)));
+document.getElementById('btnRunAll').addEventListener('click', () => runTests(testCases));
+document.getElementById('btnStop').addEventListener('click',   () => { stopped = true; });
+document.getElementById('btnExport').addEventListener('click', exportJSON);
+document.getElementById('btnClear').addEventListener('click',  clearResults);
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    applyFilter();
+    document.getElementById('tableCount').textContent = `${visibleCount()} results`;
+  });
+});
+
+init();
+</script>
+</body>
+</html>

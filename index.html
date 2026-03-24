@@ -11,22 +11,26 @@
   <title>घर की किराना लिस्ट</title>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./AI%20Agents/prompts.js"></script>
+  <script src="./ai-agents/prompts.js"></script>
+  <script src="./ai-agents/choose-model.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Reenie+Beanie&display=swap" rel="stylesheet">
   <style>
     :root {
       --g-dark: #1b5e20;
       --g-main: #2e7d32;
       --g-mid: #388e3c;
       --g-light: #43a047;
-      --g-pale: #e8f5e9;
+      --g-pale: #E8EFE8;
       --g-border: #a5d6a7;
       --g-accent: #66bb6a;
-      --t-dark: #1b2e1b;
-      --t-mid: #2e4a2e;
-      --t-soft: #4a7a4a;
-      --bg: #f1f8f1;
+      --t-dark: #292524;
+      --t-mid: #292524;
+      --t-soft: #78716C;
+      --bg: #FDFCF8;
+      --lavender: #EFEDF4;
+      --accent-coral: #FFB7B2;
       --white: #ffffff;
-      --shadow: rgba(27, 94, 32, 0.15);
+      --shadow: rgba(27, 94, 32, 0.12);
     }
 
     *,
@@ -38,7 +42,7 @@
     }
 
     body {
-      font-family: 'Noto Sans Devanagari', 'Mangal', Arial, sans-serif;
+      font-family: 'Outfit', 'Noto Sans Devanagari', 'Mangal', Arial, sans-serif;
       background: var(--bg);
       color: var(--t-dark);
       min-height: 100vh;
@@ -54,7 +58,7 @@
     #loadingOverlay {
       position: fixed;
       inset: 0;
-      background: rgba(232, 245, 233, 0.92);
+      background: rgba(253, 252, 248, 0.92);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -95,7 +99,7 @@
       align-items: center;
       justify-content: center;
       padding: 32px 20px;
-      background: linear-gradient(160deg, #e8f5e9 0%, #c8e6c9 100%);
+      background: linear-gradient(160deg, #E8EFE8 0%, #EFEDF4 100%);
     }
 
     .login-logo {
@@ -182,7 +186,7 @@
     }
 
     #skipLoginBtn {
-      background: #f1f8f1;
+      background: var(--bg);
       border-color: var(--g-border);
       color: var(--g-main);
     }
@@ -564,18 +568,22 @@
       animation: pulse-ring 1.2s ease-out infinite;
     }
 
+    /* Session active: processing between items — orange pulse */
+    #micBtn.session {
+      background: linear-gradient(145deg, #e65100, #fb8c00);
+      animation: pulse-session 2s ease-out infinite;
+    }
+
     @keyframes pulse-ring {
-      0% {
-        box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.55);
-      }
+      0%   { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.55); }
+      70%  { box-shadow: 0 0 0 22px rgba(46, 125, 50, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
+    }
 
-      70% {
-        box-shadow: 0 0 0 22px rgba(46, 125, 50, 0);
-      }
-
-      100% {
-        box-shadow: 0 0 0 0 rgba(46, 125, 50, 0);
-      }
+    @keyframes pulse-session {
+      0%   { box-shadow: 0 0 0 0 rgba(251, 140, 0, 0.55); }
+      70%  { box-shadow: 0 0 0 18px rgba(251, 140, 0, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(251, 140, 0, 0); }
     }
 
     #countdownSvg {
@@ -737,7 +745,7 @@
 
     .progress-wrap {
       width: 100%;
-      background: #c8e6c9;
+      background: var(--g-pale);
       border-radius: 20px;
       height: 8px;
       overflow: hidden;
@@ -789,7 +797,7 @@
     }
 
     tbody tr {
-      border-bottom: 1px solid #c8e6c9;
+      border-bottom: 1px solid var(--g-pale);
     }
 
     tbody tr:last-child {
@@ -797,7 +805,7 @@
     }
 
     tbody tr:nth-child(even) {
-      background: #f9fdf9;
+      background: var(--lavender);
     }
 
     tbody tr.checked-row {
@@ -1026,12 +1034,14 @@
 
   <script>
     /* ══════════════════════════════════════════════════════
-       CONFIG — replace with your Google Client ID
+       CONFIG
+       - GOOGLE_CLIENT_ID: public OAuth credential (safe in client)
+       - SUPABASE keys: anon key is designed to be public; RLS protects data
+       - OPENROUTER_API_KEY: removed — proxied via /api/ai (see api/ai.js)
     ══════════════════════════════════════════════════════ */
     const GOOGLE_CLIENT_ID = "197910257787-7as64e688d2a3bs689fs6uh8etn6tv99.apps.googleusercontent.com";
     const SUPABASE_URL = "https://dutjvxlpeilhnssbiwsd.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dGp2eGxwZWlsaG5zc2Jpd3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTIzODQsImV4cCI6MjA4OTEyODM4NH0.H8wMcOD-LzqTkGW55pO_5F8tDcHayUqjTrvYdbovCCU";
-    const OPENROUTER_API_KEY = "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";
 
     /* ══════════════════════════════════════════════════════
            HINDI WORD MAPS
@@ -1583,7 +1593,7 @@
         document.getElementById('newListVoiceBtn').classList.remove('active');
         if (e.error === 'no-speech') {
           if (convState === STATES.CONFIRM_COPY) speak(t('say_yes_no'), () => startListening());
-          else if (awaitingMore) speak(t('ask_more'), () => { if (awaitingMore) startListening(); });
+          else if (awaitingMore) startListening(); // session: restart silently, no "और कुछ?" prompt
         } else if (e.error === 'not-allowed') { showToast(t('mic_denied')); awaitingMore = false; convState = STATES.IDLE; }
       };
       return r;
@@ -1597,11 +1607,18 @@
     }
 
     function setListeningState(on) {
-      isListening = on; micBtn.classList.toggle('listening', on); micBtn.textContent = on ? '🛑' : '🎤';
-      if (on) { statusLabel.textContent = t('listening'); }
-      else {
+      isListening = on;
+      micBtn.classList.toggle('listening', on);
+      micBtn.classList.toggle('session', !on && awaitingMore); // orange pulse between items
+      micBtn.textContent = on ? '🛑' : '🎤';
+      if (on) {
+        statusLabel.textContent = awaitingMore
+          ? 'बोलते रहें… • "बस" बोलें रुकने के लिए'
+          : t('listening');
+      } else {
         document.getElementById('newListVoiceBtn').classList.remove('active');
-        if (!awaitingMore && convState === STATES.IDLE) statusLabel.textContent = t('tap_to_speak');
+        if (awaitingMore) statusLabel.textContent = '⏳ सुन रही हूँ…';
+        else if (convState === STATES.IDLE) statusLabel.textContent = t('tap_to_speak');
       }
     }
     /* ── MIC TAP WHILE TTS IS SPEAKING: cancel speech immediately, then listen ── */
@@ -1626,106 +1643,20 @@
     }
     function stopListening() {
       clearSilenceCountdown(); clearTimeout(askMoreTimer); awaitingMore = false; listNameMode = false;
+      micBtn.classList.remove('session');
       if (recognition && isListening) recognition.stop();
     }
 
-    /* ══════════════════════════════════════════════════════
-       AI AGENT — OpenRouter free model auto-selector
-    ══════════════════════════════════════════════════════ */
-    let aiModel = null;        // set dynamically from OpenRouter
-    let aiFreeModels = [];     // all currently-available free models from API
-    let aiReady = false;
-
-    // AI_MASTER_PROMPT is loaded from ./AI Agents/prompts.js
-    // Fast small models first — for grocery NLP we need speed, not huge context
-    const AI_PREFERRED_FAST = [
-      "meta-llama/llama-3.2-3b-instruct:free",   // very fast, good multilingual
-      "qwen/qwen-2.5-7b-instruct:free",            // fast, excellent Hindi/Hinglish
-      "google/gemma-2-9b-it:free",                 // fast, good JSON output
-      "mistralai/mistral-7b-instruct:free",         // reliable fallback
-      "meta-llama/llama-3.1-8b-instruct:free",     // good multilingual
-      "qwen/qwen-2-7b-instruct:free",              // Qwen2 fallback
-    ];
-
-    async function aiInitModel() {
-      try {
-        const res = await fetch("https://openrouter.ai/api/v1/models", {
-          headers: { "Authorization": `Bearer ${OPENROUTER_API_KEY}` }
-        });
-        const data = await res.json();
-        const freeIds = new Set(
-          (data.data || [])
-            .filter(m => m.pricing?.prompt === "0" || m.id.endsWith(":free"))
-            .map(m => m.id)
-        );
-        // Sort: preferred fast models first (by priority list), then any remaining free models
-        const preferred = AI_PREFERRED_FAST.filter(id => freeIds.has(id));
-        const rest = [...freeIds].filter(id => !AI_PREFERRED_FAST.includes(id));
-        aiFreeModels = [...preferred, ...rest];
-        aiModel = aiFreeModels[0] || null;
-      } catch (e) {
-        aiFreeModels = [...AI_PREFERRED_FAST];
-        aiModel = aiFreeModels[0];
-      }
-      aiReady = true;
-    }
-
-    async function callAIAgent(userInput) {
-      if (!userInput?.trim()) return null;
-      if (!aiReady) {
-        await new Promise(resolve => {
-          const chk = setInterval(() => { if (aiReady) { clearInterval(chk); resolve(); } }, 100);
-          setTimeout(() => { clearInterval(chk); resolve(); }, 5000);
-        });
-      }
-
-      // Try each live free model in order — skip rate-limited (429) or missing (404)
-      if (!aiModel && aiFreeModels.length === 0) return null;
-      const modelsToTry = aiModel
-        ? [aiModel, ...aiFreeModels.filter(m => m !== aiModel)]
-        : aiFreeModels;
-
-      for (const model of modelsToTry) {
-        try {
-          const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-              "Content-Type": "application/json",
-              "HTTP-Referer": window.location.href,
-              "X-Title": "Kirana List AI Agent",
-            },
-            body: JSON.stringify({
-              model,
-              messages: [
-                { role: "system", content: AI_MASTER_PROMPT },
-                { role: "user",   content: userInput.trim() }
-              ],
-              temperature: 0.1,
-              max_tokens: 150,
-            })
-          });
-
-          if (res.status === 429) { continue; }
-          if (!res.ok) { continue; }
-
-          const data = await res.json();
-          const raw = (data.choices?.[0]?.message?.content || "").trim()
-            .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-          const parsed = JSON.parse(raw);
-          if (!parsed.intent || !Array.isArray(parsed.items)) continue;
-
-          if (model !== aiModel) aiModel = model;
-          return parsed;
-        } catch (e) { continue; }
-      }
-      return null;
-    }
+    // AI_MASTER_PROMPT loaded from ./ai-agents/prompts.js
+    // callAIAgent + MODELS + lastUsedModel loaded from ./ai-agents/choose-model.js
+    // Model order: mistral-nemo (PRIMARY) → gemini-2.0-flash-exp (SECONDARY) → llama-3.1-8b (LAST)
 
     function showParserBadge(type) {
       const badge = document.getElementById('parserBadge');
       badge.className = type === 'ai' ? 'badge-ai' : 'badge-local';
-      badge.textContent = type === 'ai' ? '🤖 AI Agent' : '⚡ Local Parser';
+      badge.textContent = type === 'ai'
+        ? `🤖 ${(lastUsedModel || '').split('/').pop().replace(':free', '')}`
+        : '⚡ Local Parser';
       badge.style.display = 'inline-flex';
       clearTimeout(badge._hide);
       badge._hide = setTimeout(() => { badge.style.opacity = '0'; setTimeout(() => { badge.style.display = 'none'; badge.style.opacity = '1'; }, 400); }, 4000);
@@ -1734,30 +1665,25 @@
     // Connector words that signal multiple items
     const MULTI_CONNECTORS = ['और', 'एंड', 'aur', 'and', 'also', 'तथा', ',', '،'];
 
-    // Returns true only when AI is needed (complex / multi-item input)
-    // Simple single-item inputs are handled instantly by the local parser
+    // Returns true when AI is needed; false when local parser is enough.
+    // Rule: >3 words always goes to AI (catches "बेसन 4 किलो आटा" style inputs).
     function needsAIParser(text) {
       const lower = text.toLowerCase();
+      const words = text.trim().split(/\s+/).filter(w => w.length > 1);
 
       // Has explicit connector → definitely multiple items
       if (MULTI_CONNECTORS.some(c => lower.includes(c))) return true;
 
-      // Multiple numbers in input → multiple items, must use AI
-      // e.g. "3 किलो आटा 4 किलो बेसन दो अंडे" has 3 quantity markers
+      // Multiple numbers → multiple items
       const numPattern = /\b(\d+|एक|दो|तीन|चार|पाँच|छह|सात|आठ|नौ|दस)\b/g;
-      const numMatches = text.match(numPattern) || [];
-      if (numMatches.length >= 2) return true;
+      if ((text.match(numPattern) || []).length >= 2) return true;
 
-      // Local parser found a qty or brand and text is short → single clean item, no AI needed
-      const localParsed = parseSpokenText(text);
-      const wordCount = text.trim().split(/\s+/).filter(w => w.length > 1).length;
-      if ((localParsed.qty !== '-' || localParsed.brand !== '-') && wordCount <= 4) return false;
-
-      // 3+ bare words with no qty/brand → likely multiple items, use AI
-      const words = text.trim().split(/\s+/).filter(w => w.length > 1);
+      // ≥3 words → always use AI (handles descriptive names like "nahane ka sabun"
+      // and multi-item combos like "बेसन 4 किलो आटा")
       if (words.length >= 3) return true;
 
-      return false; // 1-2 word simple item → local parser is enough
+      // 1-2 words: local parser is fast enough
+      return false;
     }
 
     /* ══════════════════════════════════════════════════════
@@ -1822,7 +1748,14 @@
       statusLabel.textContent = t('processing');
       const aiResult = needsAI ? await callAIAgent(text) : null;
 
-      // Local parser path (simple input or AI unavailable)
+      // AI was needed but failed — don't corrupt data with local parser on complex input
+      if (needsAI && !aiResult) {
+        statusLabel.textContent = 'AI उपलब्ध नहीं है';
+        speak('AI अभी उपलब्ध नहीं है। कृपया एक-एक सामान बोलें।', () => setTimeout(() => startListening(), 500));
+        return;
+      }
+
+      // Local parser path (simple 1-2 word input only)
       if (!aiResult) {
         showParserBadge('local');
         const localItems = splitLocalItems(text);
@@ -1884,10 +1817,8 @@
       renderList();
 
       emptyListWarned = false;
-      const afterSpeak = () => {
-        awaitingMore = true;
-        askMoreTimer = setTimeout(() => { speak(t('ask_more'), () => { if (awaitingMore) startListening(); }); }, 6000);
-      };
+      awaitingMore = true; // session is active from this point
+      const afterSpeak = () => startListening(); // auto-restart mic immediately after TTS
       if (parsedItems.length === 1) {
         statusLabel.textContent = t('item_added_status', parsedItems[0].item);
         showToast('✅ ' + t('item_added_status', parsedItems[0].item));
@@ -2140,7 +2071,7 @@
     ══════════════════════════════════════════════════════ */
     async function initApp() {
       showLoading(true);
-      aiInitModel(); // start AI model selection in background
+      // AI engine ready (choose-model.js loaded via <script> tag in <head>)
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('appScreen').style.display = 'flex';
 

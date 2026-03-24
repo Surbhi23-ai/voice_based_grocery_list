@@ -1,0 +1,2155 @@
+[
+    {
+        "id": "1",
+        "input_text": "2 kilo aloo aur dhaniya",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "धनिया",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "2",
+        "input_text": "do kilo aloo or dhaniya",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "धनिया",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "3",
+        "input_text": "2 kg aloo aur dhaniya le aana",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "धनिया",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "4",
+        "input_text": "1 liter doodh aur 5 ande",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": "1 लीटर",
+                "brand": null
+            },
+            {
+                "item": "अंडे",
+                "quantity": "5",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "5",
+        "input_text": "ek liter dudh aur paanch ande",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": "1 लीटर",
+                "brand": null
+            },
+            {
+                "item": "अंडे",
+                "quantity": "5",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "6",
+        "input_text": "1 litre doodh aur 5 eggs",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": "1 लीटर",
+                "brand": null
+            },
+            {
+                "item": "अंडे",
+                "quantity": "5",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "7",
+        "input_text": "3 kilo chawal aur 1 kilo dal",
+        "expected_output": [
+            {
+                "item": "चावल",
+                "quantity": "3 किलो",
+                "brand": null
+            },
+            {
+                "item": "दाल",
+                "quantity": "1 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "8",
+        "input_text": "teen kilo chawal aur ek kilo dal",
+        "expected_output": [
+            {
+                "item": "चावल",
+                "quantity": "3 किलो",
+                "brand": null
+            },
+            {
+                "item": "दाल",
+                "quantity": "1 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "9",
+        "input_text": "amul doodh aur paneer",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": "Amul"
+            },
+            {
+                "item": "पनीर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "10",
+        "input_text": "amool doodh aur paneer",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": "Amul"
+            },
+            {
+                "item": "पनीर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "11",
+        "input_text": "slurp farm noodles aur doodh",
+        "expected_output": [
+            {
+                "item": "नूडल्स",
+                "quantity": null,
+                "brand": "Slurrp Farm"
+            },
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "12",
+        "input_text": "slurrp farm noodles aur doodh",
+        "expected_output": [
+            {
+                "item": "नूडल्स",
+                "quantity": null,
+                "brand": "Slurrp Farm"
+            },
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "13",
+        "input_text": "aadha kilo tamatar aur do kilo aloo",
+        "expected_output": [
+            {
+                "item": "टमाटर",
+                "quantity": "0.5 किलो",
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "14",
+        "input_text": "half kilo tamatar aur 2 kilo aloo",
+        "expected_output": [
+            {
+                "item": "टमाटर",
+                "quantity": "0.5 किलो",
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "15",
+        "input_text": "maggi aur ketchup",
+        "expected_output": [
+            {
+                "item": "मैगी",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "केचप",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "16",
+        "input_text": "maggie aur catchup",
+        "expected_output": [
+            {
+                "item": "मैगी",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "केचप",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "17",
+        "input_text": "2 bread aur butter aur cheese",
+        "expected_output": [
+            {
+                "item": "ब्रेड",
+                "quantity": "2",
+                "brand": null
+            },
+            {
+                "item": "बटर",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चीज़",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "18",
+        "input_text": "tamatar pyaz aur aloo",
+        "expected_output": [
+            {
+                "item": "टमाटर",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "19",
+        "input_text": "tamatar piyaz aur alu",
+        "expected_output": [
+            {
+                "item": "टमाटर",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "20",
+        "input_text": "5 packet maggi aur ek ketchup",
+        "expected_output": [
+            {
+                "item": "मैगी",
+                "quantity": "5 पैकेट",
+                "brand": null
+            },
+            {
+                "item": "केचप",
+                "quantity": "1",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "21",
+        "input_text": "5 packets maggi aur 1 ketchup",
+        "expected_output": [
+            {
+                "item": "मैगी",
+                "quantity": "5 पैकेट",
+                "brand": null
+            },
+            {
+                "item": "केचप",
+                "quantity": "1",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "22",
+        "input_text": "biscuit aur chocolate",
+        "expected_output": [
+            {
+                "item": "बिस्किट",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चॉकलेट",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "24",
+        "input_text": "cold drink aur chips",
+        "expected_output": [
+            {
+                "item": "कोल्ड ड्रिंक",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चिप्स",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "25",
+        "input_text": "namak aur cheeni",
+        "expected_output": [
+            {
+                "item": "नमक",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चीनी",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "26",
+        "input_text": "haldi mirch aur dhaniya powder",
+        "expected_output": [
+            {
+                "item": "हल्दी",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "मिर्च",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "धनिया पाउडर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "27",
+        "input_text": "atta aur chawal",
+        "expected_output": [
+            {
+                "item": "आटा",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चावल",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "28",
+        "input_text": "2 kilo gehun aur 1 kilo chawal",
+        "expected_output": [
+            {
+                "item": "गेहूं",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "चावल",
+                "quantity": "1 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "29",
+        "input_text": "dahi doodh paneer",
+        "expected_output": [
+            {
+                "item": "दही",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "पनीर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "31",
+        "input_text": "2 kilo aaloo aur dhaniya leke aana",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "धनिया",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "32",
+        "input_text": "2 kilo aloo dhaniya bhi le aana",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "धनिया",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "33",
+        "input_text": "do kilo aloo dhaniya aur mirchi",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "धनिया",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "मिर्च",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "34",
+        "input_text": "1 litre dudh aur 6 anda",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": "1 लीटर",
+                "brand": null
+            },
+            {
+                "item": "अंडे",
+                "quantity": "6",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "35",
+        "input_text": "dudh ek liter aur ande chhe",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": "1 लीटर",
+                "brand": null
+            },
+            {
+                "item": "अंडे",
+                "quantity": "6",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "36",
+        "input_text": "milk 1 litre aur 6 eggs",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": "1 लीटर",
+                "brand": null
+            },
+            {
+                "item": "अंडे",
+                "quantity": "6",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "37",
+        "input_text": "teen kilo chawal dal bhi ek kilo",
+        "expected_output": [
+            {
+                "item": "चावल",
+                "quantity": "3 किलो",
+                "brand": null
+            },
+            {
+                "item": "दाल",
+                "quantity": "1 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "38",
+        "input_text": "3 kg rice aur 1 kg dal",
+        "expected_output": [
+            {
+                "item": "चावल",
+                "quantity": "3 किलो",
+                "brand": null
+            },
+            {
+                "item": "दाल",
+                "quantity": "1 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "39",
+        "input_text": "amul doodh aur amul paneer",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": "Amul"
+            },
+            {
+                "item": "पनीर",
+                "quantity": null,
+                "brand": "Amul"
+            }
+        ]
+    },
+    {
+        "id": "40",
+        "input_text": "amool dudh aur amul paneer",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": "Amul"
+            },
+            {
+                "item": "पनीर",
+                "quantity": null,
+                "brand": "Amul"
+            }
+        ]
+    },
+    {
+        "id": "41",
+        "input_text": "slurp farm noodles 2 packet",
+        "expected_output": [
+            {
+                "item": "नूडल्स",
+                "quantity": "2 पैकेट",
+                "brand": "Slurrp Farm"
+            }
+        ]
+    },
+    {
+        "id": "42",
+        "input_text": "slurrp farm noodles do packet",
+        "expected_output": [
+            {
+                "item": "नूडल्स",
+                "quantity": "2 पैकेट",
+                "brand": "Slurrp Farm"
+            }
+        ]
+    },
+    {
+        "id": "43",
+        "input_text": "half kilo pyaz aur 2 kilo aloo",
+        "expected_output": [
+            {
+                "item": "प्याज",
+                "quantity": "0.5 किलो",
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "44",
+        "input_text": "aadha kilo pyaz aur do kilo aloo",
+        "expected_output": [
+            {
+                "item": "प्याज",
+                "quantity": "0.5 किलो",
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "45",
+        "input_text": "maggie 4 packet aur ketchup",
+        "expected_output": [
+            {
+                "item": "मैगी",
+                "quantity": "4 पैकेट",
+                "brand": null
+            },
+            {
+                "item": "केचप",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "46",
+        "input_text": "maggi char packet aur ketchup",
+        "expected_output": [
+            {
+                "item": "मैगी",
+                "quantity": "4 पैकेट",
+                "brand": null
+            },
+            {
+                "item": "केचप",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "47",
+        "input_text": "bread 2 aur butter cheese",
+        "expected_output": [
+            {
+                "item": "ब्रेड",
+                "quantity": "2",
+                "brand": null
+            },
+            {
+                "item": "बटर",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चीज़",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "48",
+        "input_text": "tamatar aloo pyaz sab le aana",
+        "expected_output": [
+            {
+                "item": "टमाटर",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "49",
+        "input_text": "tamatar alu pyaaz",
+        "expected_output": [
+            {
+                "item": "टमाटर",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "50",
+        "input_text": "5 maggi aur 1 ketchup",
+        "expected_output": [
+            {
+                "item": "मैगी",
+                "quantity": "5",
+                "brand": null
+            },
+            {
+                "item": "केचप",
+                "quantity": "1",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "51",
+        "input_text": "biscut aur chocolate le aana",
+        "expected_output": [
+            {
+                "item": "बिस्किट",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चॉकलेट",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "52",
+        "input_text": "chips aur coldrink",
+        "expected_output": [
+            {
+                "item": "चिप्स",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "कोल्ड ड्रिंक",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "53",
+        "input_text": "namak cheeni dono le aana",
+        "expected_output": [
+            {
+                "item": "नमक",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चीनी",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "54",
+        "input_text": "haldi aur mirchi powder",
+        "expected_output": [
+            {
+                "item": "हल्दी",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "मिर्च पाउडर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "55",
+        "input_text": "atta chawal dono le lo",
+        "expected_output": [
+            {
+                "item": "आटा",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चावल",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "56",
+        "input_text": "gehun 2 kilo chawal 1 kilo",
+        "expected_output": [
+            {
+                "item": "गेहूं",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "चावल",
+                "quantity": "1 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "57",
+        "input_text": "dahi dudh paneer sab le aana",
+        "expected_output": [
+            {
+                "item": "दही",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "पनीर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "58",
+        "input_text": "dahi dud paneer",
+        "expected_output": [
+            {
+                "item": "दही",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "पनीर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "59",
+        "input_text": "2 kilo seb aur 6 kela",
+        "expected_output": [
+            {
+                "item": "सेब",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "केला",
+                "quantity": "6",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "60",
+        "input_text": "apple 2 kilo aur banana 6",
+        "expected_output": [
+            {
+                "item": "सेब",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "केला",
+                "quantity": "6",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "61",
+        "input_text": "bhindi aur baingan le aana",
+        "expected_output": [
+            {
+                "item": "भिंडी",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "बैंगन",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "62",
+        "input_text": "bhindi baigan",
+        "expected_output": [
+            {
+                "item": "भिंडी",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "बैंगन",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "63",
+        "input_text": "paneer 200 gram aur doodh",
+        "expected_output": [
+            {
+                "item": "पनीर",
+                "quantity": "200 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "64",
+        "input_text": "paneer do sau gram aur dudh",
+        "expected_output": [
+            {
+                "item": "पनीर",
+                "quantity": "200 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "65",
+        "input_text": "butter aur cheese le aana",
+        "expected_output": [
+            {
+                "item": "बटर",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चीज़",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "66",
+        "input_text": "butter cheese",
+        "expected_output": [
+            {
+                "item": "बटर",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चीज़",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "67",
+        "input_text": "2 litre doodh aur 1 bread",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": "2 लीटर",
+                "brand": null
+            },
+            {
+                "item": "ब्रेड",
+                "quantity": "1",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "68",
+        "input_text": "doodh 2 litre bread ek",
+        "expected_output": [
+            {
+                "item": "दूध",
+                "quantity": "2 लीटर",
+                "brand": null
+            },
+            {
+                "item": "ब्रेड",
+                "quantity": "1",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "69",
+        "input_text": "chawal dal namak sab le aana",
+        "expected_output": [
+            {
+                "item": "चावल",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "दाल",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "नमक",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "70",
+        "input_text": "rice dal salt",
+        "expected_output": [
+            {
+                "item": "चावल",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "दाल",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "नमक",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "71",
+        "input_text": "mirchi dhaniya haldi sab le lo",
+        "expected_output": [
+            {
+                "item": "मिर्च",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "धनिया",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "हल्दी",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "72",
+        "input_text": "chocolate biscuit chips",
+        "expected_output": [
+            {
+                "item": "चॉकलेट",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "बिस्किट",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "चिप्स",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "73",
+        "input_text": "paneer doodh dahi 1 kilo",
+        "expected_output": [
+            {
+                "item": "पनीर",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "दही",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "74",
+        "input_text": "paneer 1 kilo doodh dahi",
+        "expected_output": [
+            {
+                "item": "पनीर",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "दूध",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "दही",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "75",
+        "input_text": "aloo 3 kilo aur pyaz 2 kilo",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "3 किलो",
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": "2 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "76",
+        "input_text": "alu teen kilo pyaz do kilo",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "3 किलो",
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": "2 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "77",
+        "input_text": "tamatar 1 kilo aloo 2 kilo pyaz 3 kilo",
+        "expected_output": [
+            {
+                "item": "टमाटर",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": "3 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "78",
+        "input_text": "tamatar ek kilo aloo do kilo pyaz teen kilo",
+        "expected_output": [
+            {
+                "item": "टमाटर",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": "3 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "79",
+        "input_text": "slurp farm noodles 3 packet aur maggi 2 packet",
+        "expected_output": [
+            {
+                "item": "नूडल्स",
+                "quantity": "3 पैकेट",
+                "brand": "Slurrp Farm"
+            },
+            {
+                "item": "मैगी",
+                "quantity": "2 पैकेट",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "80",
+        "input_text": "slurrp farm noodles teen packet aur maggi do packet",
+        "expected_output": [
+            {
+                "item": "नूडल्स",
+                "quantity": "3 पैकेट",
+                "brand": "Slurrp Farm"
+            },
+            {
+                "item": "मैगी",
+                "quantity": "2 पैकेट",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "81",
+        "input_text": "amul butter aur cheese",
+        "expected_output": [
+            {
+                "item": "बटर",
+                "quantity": null,
+                "brand": "Amul"
+            },
+            {
+                "item": "चीज़",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "82",
+        "input_text": "amool butter aur cheese",
+        "expected_output": [
+            {
+                "item": "बटर",
+                "quantity": null,
+                "brand": "Amul"
+            },
+            {
+                "item": "चीज़",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "83",
+        "input_text": "bread 2 aur amul butter",
+        "expected_output": [
+            {
+                "item": "ब्रेड",
+                "quantity": "2",
+                "brand": null
+            },
+            {
+                "item": "बटर",
+                "quantity": null,
+                "brand": "Amul"
+            }
+        ]
+    },
+    {
+        "id": "84",
+        "input_text": "bread do aur amool butter",
+        "expected_output": [
+            {
+                "item": "ब्रेड",
+                "quantity": "2",
+                "brand": null
+            },
+            {
+                "item": "बटर",
+                "quantity": null,
+                "brand": "Amul"
+            }
+        ]
+    },
+    {
+        "id": "85",
+        "input_text": "chocolate 5 aur biscuit 2 packet",
+        "expected_output": [
+            {
+                "item": "चॉकलेट",
+                "quantity": "5",
+                "brand": null
+            },
+            {
+                "item": "बिस्किट",
+                "quantity": "2 पैकेट",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "86",
+        "input_text": "choclate paanch aur biscuit do packet",
+        "expected_output": [
+            {
+                "item": "चॉकलेट",
+                "quantity": "5",
+                "brand": null
+            },
+            {
+                "item": "बिस्किट",
+                "quantity": "2 पैकेट",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "87",
+        "input_text": "chips 3 aur cold drink 2",
+        "expected_output": [
+            {
+                "item": "चिप्स",
+                "quantity": "3",
+                "brand": null
+            },
+            {
+                "item": "कोल्ड ड्रिंक",
+                "quantity": "2",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "88",
+        "input_text": "chips teen aur cold drink do",
+        "expected_output": [
+            {
+                "item": "चिप्स",
+                "quantity": "3",
+                "brand": null
+            },
+            {
+                "item": "कोल्ड ड्रिंक",
+                "quantity": "2",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "89",
+        "input_text": "namak 1 kilo aur cheeni 2 kilo",
+        "expected_output": [
+            {
+                "item": "नमक",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "चीनी",
+                "quantity": "2 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "90",
+        "input_text": "namak ek kilo aur cheeni do kilo",
+        "expected_output": [
+            {
+                "item": "नमक",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "चीनी",
+                "quantity": "2 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "91",
+        "input_text": "haldi 100 gram aur mirchi 200 gram",
+        "expected_output": [
+            {
+                "item": "हल्दी",
+                "quantity": "100 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "मिर्च",
+                "quantity": "200 ग्राम",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "92",
+        "input_text": "haldi sau gram aur mirchi do sau gram",
+        "expected_output": [
+            {
+                "item": "हल्दी",
+                "quantity": "100 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "मिर्च",
+                "quantity": "200 ग्राम",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "93",
+        "input_text": "paneer 500 gram aur doodh 1 litre",
+        "expected_output": [
+            {
+                "item": "पनीर",
+                "quantity": "500 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "दूध",
+                "quantity": "1 लीटर",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "94",
+        "input_text": "paneer paanch sau gram aur dudh ek litre",
+        "expected_output": [
+            {
+                "item": "पनीर",
+                "quantity": "500 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "दूध",
+                "quantity": "1 लीटर",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "95",
+        "input_text": "dahi 1 kilo aur paneer 500 gram",
+        "expected_output": [
+            {
+                "item": "दही",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "पनीर",
+                "quantity": "500 ग्राम",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "96",
+        "input_text": "dahi ek kilo aur paneer paanch sau gram",
+        "expected_output": [
+            {
+                "item": "दही",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "पनीर",
+                "quantity": "500 ग्राम",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "97",
+        "input_text": "aloo pyaz tamatar sab 1-1 kilo",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "टमाटर",
+                "quantity": "1 किलो",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "98",
+        "input_text": "sabzi ke liye aloo pyaz tamatar",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "टमाटर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "99",
+        "input_text": "2 kilo aloo 1 kilo pyaz aur dhaniya",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "धनिया",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "100",
+        "input_text": "aloo do kilo pyaz ek kilo aur dhaniya",
+        "expected_output": [
+            {
+                "item": "आलू",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "प्याज",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "धनिया",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "121",
+        "input_text": "avocado 2 aur surf excel 1 kilo",
+        "expected_output": [
+            {
+                "item": "एवोकाडो",
+                "quantity": "2",
+                "brand": null
+            },
+            {
+                "item": "डिटर्जेंट",
+                "quantity": "1 किलो",
+                "brand": "Surf Excel"
+            }
+        ]
+    },
+    {
+        "id": "122",
+        "input_text": "blueberry 150 gram aur dove soap 2",
+        "expected_output": [
+            {
+                "item": "ब्लूबेरी",
+                "quantity": "150 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "साबुन",
+                "quantity": "2",
+                "brand": "Dove"
+            }
+        ]
+    },
+    {
+        "id": "123",
+        "input_text": "mango 3 kilo aur fortune oil 1 litre",
+        "expected_output": [
+            {
+                "item": "आम",
+                "quantity": "3 किलो",
+                "brand": null
+            },
+            {
+                "item": "ऑयल",
+                "quantity": "1 लीटर",
+                "brand": "Fortune"
+            }
+        ]
+    },
+    {
+        "id": "124",
+        "input_text": "kiwi 5 aur tata salt 1 kilo",
+        "expected_output": [
+            {
+                "item": "कीवी",
+                "quantity": "5",
+                "brand": null
+            },
+            {
+                "item": "नमक",
+                "quantity": "1 किलो",
+                "brand": "Tata"
+            }
+        ]
+    },
+    {
+        "id": "125",
+        "input_text": "dragon fruit 2 aur aashirvaad atta 5 kilo",
+        "expected_output": [
+            {
+                "item": "ड्रैगन फ्रूट",
+                "quantity": "2",
+                "brand": null
+            },
+            {
+                "item": "आटा",
+                "quantity": "5 किलो",
+                "brand": "Aashirvaad"
+            }
+        ]
+    },
+    {
+        "id": "126",
+        "input_text": "papaya 1 aur lux soap 3",
+        "expected_output": [
+            {
+                "item": "पपीता",
+                "quantity": "1",
+                "brand": null
+            },
+            {
+                "item": "साबुन",
+                "quantity": "3",
+                "brand": "Lux"
+            }
+        ]
+    },
+    {
+        "id": "127",
+        "input_text": "anar 1 kilo aur detergent 500 gram",
+        "expected_output": [
+            {
+                "item": "अनार",
+                "quantity": "1 किलो",
+                "brand": null
+            },
+            {
+                "item": "डिटर्जेंट",
+                "quantity": "500 ग्राम",
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "128",
+        "input_text": "angoor 2 kilo aur lays chips 3",
+        "expected_output": [
+            {
+                "item": "अंगूर",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "चिप्स",
+                "quantity": "3",
+                "brand": "Lays"
+            }
+        ]
+    },
+    {
+        "id": "129",
+        "input_text": "strawberry 200 gram aur pepsi 2 bottle",
+        "expected_output": [
+            {
+                "item": "स्ट्रॉबेरी",
+                "quantity": "200 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "कोल्ड ड्रिंक",
+                "quantity": "2 बोतल",
+                "brand": "Pepsi"
+            }
+        ]
+    },
+    {
+        "id": "130",
+        "input_text": "pineapple 1 aur good day biscuit 2 packet",
+        "expected_output": [
+            {
+                "item": "अनानास",
+                "quantity": "1",
+                "brand": null
+            },
+            {
+                "item": "बिस्किट",
+                "quantity": "2 पैकेट",
+                "brand": "Good Day"
+            }
+        ]
+    },
+    {
+        "id": "131",
+        "input_text": "watermelon 1 aur dairy milk 5",
+        "expected_output": [
+            {
+                "item": "तरबूज",
+                "quantity": "1",
+                "brand": null
+            },
+            {
+                "item": "चॉकलेट",
+                "quantity": "5",
+                "brand": "Dairy Milk"
+            }
+        ]
+    },
+    {
+        "id": "132",
+        "input_text": "guava 2 kilo aur vim liquid 1 bottle",
+        "expected_output": [
+            {
+                "item": "अमरूद",
+                "quantity": "2 किलो",
+                "brand": null
+            },
+            {
+                "item": "डिशवॉश लिक्विड",
+                "quantity": "1 बोतल",
+                "brand": "Vim"
+            }
+        ]
+    },
+    {
+        "id": "133",
+        "input_text": "orange 1 dozen aur harpic 1",
+        "expected_output": [
+            {
+                "item": "संतरा",
+                "quantity": "12",
+                "brand": null
+            },
+            {
+                "item": "टॉयलेट क्लीनर",
+                "quantity": "1",
+                "brand": "Harpic"
+            }
+        ]
+    },
+    {
+        "id": "134",
+        "input_text": "mosambi 6 aur colgate toothpaste",
+        "expected_output": [
+            {
+                "item": "मौसंबी",
+                "quantity": "6",
+                "brand": null
+            },
+            {
+                "item": "टूथपेस्ट",
+                "quantity": null,
+                "brand": "Colgate"
+            }
+        ]
+    },
+    {
+        "id": "135",
+        "input_text": "cherry 100 gram aur clinic plus shampoo",
+        "expected_output": [
+            {
+                "item": "चेरी",
+                "quantity": "100 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "शैम्पू",
+                "quantity": null,
+                "brand": "Clinic Plus"
+            }
+        ]
+    },
+    {
+        "id": "136",
+        "input_text": "pear 4 aur head and shoulders shampoo",
+        "expected_output": [
+            {
+                "item": "नाशपाती",
+                "quantity": "4",
+                "brand": null
+            },
+            {
+                "item": "शैम्पू",
+                "quantity": null,
+                "brand": "Head & Shoulders"
+            }
+        ]
+    },
+    {
+        "id": "137",
+        "input_text": "plum 200 gram aur dettol soap",
+        "expected_output": [
+            {
+                "item": "आलूबुखारा",
+                "quantity": "200 ग्राम",
+                "brand": null
+            },
+            {
+                "item": "साबुन",
+                "quantity": null,
+                "brand": "Dettol"
+            }
+        ]
+    },
+    {
+        "id": "138",
+        "input_text": "pomegranate juice aur tide detergent",
+        "expected_output": [
+            {
+                "item": "अनार जूस",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "डिटर्जेंट",
+                "quantity": null,
+                "brand": "Tide"
+            }
+        ]
+    },
+    {
+        "id": "139",
+        "input_text": "banana 12 aur patanjali oil 1 litre",
+        "expected_output": [
+            {
+                "item": "केला",
+                "quantity": "12",
+                "brand": null
+            },
+            {
+                "item": "ऑयल",
+                "quantity": "1 लीटर",
+                "brand": "Patanjali"
+            }
+        ]
+    },
+    {
+        "id": "140",
+        "input_text": "apple juice aur surf excel liquid",
+        "expected_output": [
+            {
+                "item": "सेब जूस",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "डिटर्जेंट लिक्विड",
+                "quantity": null,
+                "brand": "Surf Excel"
+            }
+        ]
+    },
+    {
+        "id": "141",
+        "input_text": "grapes juice aur lifebuoy soap",
+        "expected_output": [
+            {
+                "item": "अंगूर जूस",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "साबुन",
+                "quantity": null,
+                "brand": "Lifebuoy"
+            }
+        ]
+    },
+    {
+        "id": "142",
+        "input_text": "mango juice aur lux body wash",
+        "expected_output": [
+            {
+                "item": "आम जूस",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "बॉडी वॉश",
+                "quantity": null,
+                "brand": "Lux"
+            }
+        ]
+    },
+    {
+        "id": "143",
+        "input_text": "banana shake aur dove body wash",
+        "expected_output": [
+            {
+                "item": "केला शेक",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "बॉडी वॉश",
+                "quantity": null,
+                "brand": "Dove"
+            }
+        ]
+    },
+    {
+        "id": "144",
+        "input_text": "fruit salad aur detergent",
+        "expected_output": [
+            {
+                "item": "फ्रूट सलाद",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "डिटर्जेंट",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "145",
+        "input_text": "mixed fruits aur shampoo",
+        "expected_output": [
+            {
+                "item": "मिक्स्ड फ्रूट्स",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "शैम्पू",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "146",
+        "input_text": "avocado salad aur olive oil",
+        "expected_output": [
+            {
+                "item": "एवोकाडो सलाद",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "ऑलिव ऑयल",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "147",
+        "input_text": "kiwi smoothie aur conditioner",
+        "expected_output": [
+            {
+                "item": "कीवी स्मूदी",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "कंडीशनर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "148",
+        "input_text": "blueberry cake aur baking oil",
+        "expected_output": [
+            {
+                "item": "ब्लूबेरी केक",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "बेकिंग ऑयल",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "149",
+        "input_text": "mango pulp aur detergent powder",
+        "expected_output": [
+            {
+                "item": "आम पल्प",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "डिटर्जेंट पाउडर",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    },
+    {
+        "id": "150",
+        "input_text": "fruit basket aur soap pack",
+        "expected_output": [
+            {
+                "item": "फ्रूट बास्केट",
+                "quantity": null,
+                "brand": null
+            },
+            {
+                "item": "साबुन पैक",
+                "quantity": null,
+                "brand": null
+            }
+        ]
+    }
+]
