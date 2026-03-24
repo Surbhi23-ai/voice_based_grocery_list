@@ -8,7 +8,7 @@
    Local dev: run `vercel dev` (reads .env.local)
 ══════════════════════════════════════════════════════ */
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
