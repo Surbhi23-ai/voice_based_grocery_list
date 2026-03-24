@@ -19,8 +19,9 @@ const MODELS = [
 // Tracks which model last responded — read by showParserBadge in index.html
 let lastUsedModel = null;
 
-// Once proxy is found broken, skip it for the rest of the session
-let _useDirect = false;
+// Always use direct OpenRouter call (proxy requires Vercel env var setup)
+// TODO: set to false once OPENROUTER_API_KEY is confirmed working in Vercel env
+let _useDirect = true;
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
