@@ -8,7 +8,7 @@
 
 // Dev key — used only when /api/ai proxy is unavailable (local dev without vercel dev)
 // In production the Vercel env var is used by the proxy; this key never reaches prod users
-const OPENROUTER_DEV_KEY = "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";
+const OPENROUTER_DEV_KEY = "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";
 
 const MODELS = [
   "mistralai/mistral-nemo:free",            // PRIMARY
