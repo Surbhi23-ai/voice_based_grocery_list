@@ -6,9 +6,9 @@
 ══════════════════════════════════════════════════════ */
 
 const MODELS = [
-  "mistralai/mistral-nemo:free",            // PRIMARY
-  "google/gemini-2.0-flash-exp:free",       // SECONDARY
-  "meta-llama/llama-3.1-8b-instruct:free",  // LAST
+  "mistralai/mistral-small-3.1-24b-instruct:free",  // PRIMARY
+  "meta-llama/llama-3.3-70b-instruct:free",          // SECONDARY
+  "google/gemma-3-27b-it:free",                      // LAST
 ];
 
 // Tracks which model last responded — read by showParserBadge in index.html
