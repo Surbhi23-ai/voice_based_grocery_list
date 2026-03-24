@@ -11,9 +11,9 @@
 const OPENROUTER_DEV_KEY = "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";
 
 const MODELS = [
-  "mistralai/mistral-nemo",            // PRIMARY
-  "google/gemini-2.0-flash-exp",       // SECONDARY
-  "meta-llama/llama-3.1-8b-instruct",  // LAST
+  "mistralai/mistral-nemo:free",            // PRIMARY
+  "google/gemini-2.0-flash-exp:free",       // SECONDARY
+  "meta-llama/llama-3.1-8b-instruct:free",  // LAST
 ];
 
 // Tracks which model last responded — read by showParserBadge in index.html

@@ -467,9 +467,9 @@ function judgeResult(expectedOutput, modelItems) {
 // Ordered fallback list — rotate on 429
 // Gemini Flash (PRIMARY) → Mistral Nemo (FALLBACK) → LLaMA 8B (FAST PATH) → DeepSeek (LAST RESORT)
 const EVAL_MODELS = [
-  "mistralai/mistral-nemo",            // PRIMARY
-  "google/gemini-2.0-flash-exp",       // SECONDARY
-  "meta-llama/llama-3.1-8b-instruct",  // LAST
+  "mistralai/mistral-nemo:free",            // PRIMARY
+  "google/gemini-2.0-flash-exp:free",       // SECONDARY
+  "meta-llama/llama-3.1-8b-instruct:free",  // LAST
 ];
 let evalModelIdx = 0;
 
