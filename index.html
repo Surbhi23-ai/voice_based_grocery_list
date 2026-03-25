@@ -1078,12 +1078,16 @@
        Detects Hindi sentences vs grocery phrases by looking
        for verbs, question words, and pronouns in raw speech.
     ══════════════════════════════════════════════════════ */
+    const NG_GREETINGS = ['हेलो', 'हैलो', 'हाय', 'हाई', 'नमस्ते', 'नमस्कार', 'hello', 'hi', 'hey', 'good morning', 'good night', 'शुभ', 'राम राम', 'सत श्री अकाल', 'thank you', 'धन्यवाद', 'शुक्रिया', 'ok', 'ओके', 'ठीक है', 'अच्छा', 'bye', 'बाय', 'अलविदा'];
     const NG_VERBS = ['है', 'हैं', 'था', 'थी', 'थे', 'हो', 'होगा', 'होगी', 'होंगे', 'करना', 'करो', 'करें', 'करता', 'करती', 'करते', 'बताओ', 'बताएं', 'बता', 'देना', 'लेना', 'जाओ', 'आओ', 'बोलो', 'सुनो', 'पूछो', 'चाहिए', 'लगता', 'लगती', 'मिलेगा', 'मिलेगी'];
     const NG_QUESTIONS = ['कैसा', 'कैसे', 'कैसी', 'क्या', 'कब', 'कहाँ', 'कहां', 'कौन', 'क्यों', 'क्योंकि', 'किसका', 'किसकी', 'किसके', 'कितना', 'कितने', 'कितनी'];
     const NG_PRONOUNS = ['मैं', 'मुझे', 'मुझको', 'मेरा', 'मेरी', 'मेरे', 'तुम', 'तुमको', 'तुम्हारा', 'आपको', 'आपका', 'वो', 'वह', 'उसे', 'उसको', 'हमें', 'हमारा', 'यह', 'इसे', 'इसको'];
 
     function isNonGrocery(rawText, parsedItem) {
+      const lower = rawText.trim().toLowerCase();
       const words = rawText.trim().split(/\s+/);
+      // Greeting / filler — not a grocery item
+      if (NG_GREETINGS.some(g => lower === g || lower === g + '!' || lower === g + '।')) return true;
       // Has a Hindi verb → it's a sentence, not a grocery item
       if (NG_VERBS.some(v => words.includes(v))) return true;
       // Has a question word → definitely not grocery
