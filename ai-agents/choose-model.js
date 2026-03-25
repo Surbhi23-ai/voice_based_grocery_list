@@ -6,9 +6,10 @@
 ══════════════════════════════════════════════════════ */
 
 const MODELS = [
-  "mistralai/mistral-small-3.1-24b-instruct:free",  // PRIMARY
-  "meta-llama/llama-3.3-70b-instruct:free",          // SECONDARY
-  "google/gemma-3-27b-it:free",                      // LAST
+  "nvidia/nemotron-3-super-120b-a12b:free",  // PRIMARY  (120B — best quality)
+  "stepfun/step-3.5-flash:free",             // SECONDARY (fast)
+  "google/gemma-3-12b-it:free",              // TERTIARY
+  "nvidia/nemotron-nano-9b-v2:free",         // LAST
 ];
 
 // Tracks which model last responded — read by showParserBadge in index.html
