@@ -43,7 +43,7 @@ async function callAIAgent(userInput) {
               { role: "user",   content: userInput.trim() }
             ],
             temperature: 0.1,
-            max_tokens: 150
+            max_tokens: 600
           })
         });
 
@@ -59,7 +59,11 @@ async function callAIAgent(userInput) {
         }
 
         const data = await res.json();
-        const raw = (data.choices?.[0]?.message?.content || "").trim()
+        const msg = data.choices?.[0]?.message || {};
+        // Reasoning models return null content — extract JSON from reasoning field
+        const rawText = (msg.content || msg.reasoning || "").trim();
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        const raw = jsonMatch ? jsonMatch[0] : rawText
           .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
 
         const parsed = JSON.parse(raw);
