@@ -734,12 +734,18 @@
     #shareWhatsAppBtn {
       background: #e8f8ef;
       border: 2px solid #25D366;
-      color: #128C7E;
+      padding: 8px 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #shareWhatsAppBtn:active {
       background: #25D366;
-      color: #fff;
+    }
+
+    #shareWhatsAppBtn:active svg {
+      fill: #fff;
     }
 
     .empty-state {
@@ -1032,7 +1038,11 @@
         <div class="list-header">
           <span class="list-title" id="activeListTitle">📋 सामान</span>
           <div class="list-actions">
-            <button class="action-btn" id="shareWhatsAppBtn" onclick="shareOnWhatsApp()">📲 शेयर करें</button>
+            <button class="action-btn" id="shareWhatsAppBtn" onclick="shareOnWhatsApp()" title="WhatsApp पर शेयर करें">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.406A9.955 9.955 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.95 7.95 0 0 1-4.073-1.117l-.292-.173-3.045.86.844-3.127-.19-.305A7.96 7.96 0 0 1 4 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8zm4.406-5.844c-.242-.121-1.43-.706-1.652-.786-.22-.08-.381-.12-.541.12-.16.242-.622.786-.763.947-.14.16-.281.18-.522.06-.242-.12-1.02-.376-1.942-1.198-.717-.64-1.202-1.43-1.343-1.672-.14-.242-.015-.373.106-.493.108-.108.242-.282.362-.423.12-.14.16-.242.242-.402.08-.16.04-.302-.02-.423-.06-.12-.541-1.304-.741-1.786-.195-.468-.394-.404-.541-.412l-.462-.008c-.16 0-.42.06-.64.302-.22.242-.84.822-.84 2.004 0 1.182.86 2.324.98 2.484.12.16 1.692 2.584 4.1 3.623.573.247 1.02.395 1.368.505.575.183 1.098.157 1.511.095.461-.069 1.42-.581 1.621-1.142.2-.562.2-1.043.14-1.143-.06-.1-.22-.16-.462-.282z"/>
+              </svg>
+            </button>
             <button class="action-btn" id="clearBtn" onclick="confirmClearList()">🗑️ साफ करें</button>
             <button class="action-btn" id="deleteListBtn" onclick="uiDeleteList()">❌ लिस्ट हटाएं</button>
           </div>
