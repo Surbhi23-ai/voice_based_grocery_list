@@ -32,9 +32,12 @@ async function callAIAgent(userInput) {
   for (const model of MODELS) {
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
         const res = await fetch(url, {
           method: "POST",
           headers: baseHeaders,
+          signal: controller.signal,
           body: JSON.stringify({
             model,
             messages: [
@@ -46,10 +49,11 @@ async function callAIAgent(userInput) {
             reasoning: { effort: "none" }
           })
         });
+        clearTimeout(timeout);
 
         if (res.status === 429) {
           console.warn(`⚠ Rate limited on ${model} (attempt ${attempt})`);
-          await sleep(2000);
+          await sleep(500);
           continue;
         }
 
@@ -75,8 +79,10 @@ async function callAIAgent(userInput) {
         return parsed;
 
       } catch (err) {
-        console.warn(`⚠ ${model} attempt ${attempt}:`, err.message);
-        await sleep(1000);
+        clearTimeout(timeout);
+        const label = err.name === 'AbortError' ? 'timeout 6s' : err.message;
+        console.warn(`⚠ ${model} attempt ${attempt}: ${label}`);
+        await sleep(300);
       }
     }
     console.log(`➡ Switching to next model...`);
