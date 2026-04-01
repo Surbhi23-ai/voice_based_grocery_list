@@ -6,9 +6,8 @@
 ══════════════════════════════════════════════════════ */
 
 const MODELS = [
-  "nvidia/nemotron-3-super-120b-a12b:free",  // PRIMARY  (120B — best quality)
-  "stepfun/step-3.5-flash:free",             // SECONDARY (fast)
-  "google/gemma-3-12b-it:free",              // TERTIARY
+  "nvidia/nemotron-3-super-120b-a12b:free",  // PRIMARY  (120B, reasoning disabled)
+  "stepfun/step-3.5-flash:free",             // SECONDARY
   "nvidia/nemotron-nano-9b-v2:free",         // LAST
 ];
 
@@ -43,7 +42,8 @@ async function callAIAgent(userInput) {
               { role: "user",   content: userInput.trim() }
             ],
             temperature: 0.1,
-            max_tokens: 600
+            max_tokens: 200,
+            reasoning: { effort: "none" }
           })
         });
 
