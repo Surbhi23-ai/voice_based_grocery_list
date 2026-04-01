@@ -1655,11 +1655,12 @@
     // callAIAgent + MODELS + lastUsedModel loaded from ./ai-agents/choose-model.js
     // Model order: mistral-nemo (PRIMARY) → gemini-2.0-flash-exp (SECONDARY) → llama-3.1-8b (LAST)
 
-    function showParserBadge(type) {
+    function showParserBadge(type, latencyMs) {
       const badge = document.getElementById('parserBadge');
       badge.className = type === 'ai' ? 'badge-ai' : 'badge-local';
+      const latency = latencyMs != null ? ` · ${(latencyMs / 1000).toFixed(1)}s` : '';
       badge.textContent = type === 'ai'
-        ? `🤖 ${(lastUsedModel || '').split('/').pop().replace(':free', '')}`
+        ? `🤖 ${(lastUsedModel || '').split('/').pop().replace(':free', '')}${latency}`
         : '⚡ Local Parser';
       badge.style.display = 'inline-flex';
       clearTimeout(badge._hide);
@@ -1750,7 +1751,9 @@
       // Complex input = multiple items or Hinglish corrections → use AI
       const needsAI = needsAIParser(text);
       statusLabel.textContent = t('processing');
+      const aiT0 = Date.now();
       const aiResult = needsAI ? await callAIAgent(text) : null;
+      const aiLatencyMs = needsAI ? Date.now() - aiT0 : null;
 
       // AI was needed but failed — don't corrupt data with local parser on complex input
       if (needsAI && !aiResult) {
@@ -1786,7 +1789,7 @@
       }
 
       // ADD_ITEMS — AI path
-      showParserBadge('ai');
+      showParserBadge('ai', aiLatencyMs);
       if (!aiResult.items?.length) { speak(t('not_grocery'), () => setTimeout(() => startListening(), 500)); return; }
 
       const curListName = getActiveListName();
